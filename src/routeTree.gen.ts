@@ -9,8 +9,50 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShieldRouteImport } from './routes/shield'
+import { Route as LogsRouteImport } from './routes/logs'
+import { Route as DetectRouteImport } from './routes/detect'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConflictRouteImport } from './routes/conflict'
+import { Route as AttackRouteImport } from './routes/attack'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ShieldRoute = ShieldRouteImport.update({
+  id: '/shield',
+  path: '/shield',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DetectRoute = DetectRouteImport.update({
+  id: '/detect',
+  path: '/detect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConflictRoute = ConflictRouteImport.update({
+  id: '/conflict',
+  path: '/conflict',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttackRoute = AttackRouteImport.update({
+  id: '/attack',
+  path: '/attack',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +61,130 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/attack': typeof AttackRoute
+  '/conflict': typeof ConflictRoute
+  '/dashboard': typeof DashboardRoute
+  '/detect': typeof DetectRoute
+  '/logs': typeof LogsRoute
+  '/shield': typeof ShieldRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/attack': typeof AttackRoute
+  '/conflict': typeof ConflictRoute
+  '/dashboard': typeof DashboardRoute
+  '/detect': typeof DetectRoute
+  '/logs': typeof LogsRoute
+  '/shield': typeof ShieldRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/attack': typeof AttackRoute
+  '/conflict': typeof ConflictRoute
+  '/dashboard': typeof DashboardRoute
+  '/detect': typeof DetectRoute
+  '/logs': typeof LogsRoute
+  '/shield': typeof ShieldRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/attack'
+    | '/conflict'
+    | '/dashboard'
+    | '/detect'
+    | '/logs'
+    | '/shield'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analytics'
+    | '/attack'
+    | '/conflict'
+    | '/dashboard'
+    | '/detect'
+    | '/logs'
+    | '/shield'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/attack'
+    | '/conflict'
+    | '/dashboard'
+    | '/detect'
+    | '/logs'
+    | '/shield'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  AttackRoute: typeof AttackRoute
+  ConflictRoute: typeof ConflictRoute
+  DashboardRoute: typeof DashboardRoute
+  DetectRoute: typeof DetectRoute
+  LogsRoute: typeof LogsRoute
+  ShieldRoute: typeof ShieldRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shield': {
+      id: '/shield'
+      path: '/shield'
+      fullPath: '/shield'
+      preLoaderRoute: typeof ShieldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/detect': {
+      id: '/detect'
+      path: '/detect'
+      fullPath: '/detect'
+      preLoaderRoute: typeof DetectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conflict': {
+      id: '/conflict'
+      path: '/conflict'
+      fullPath: '/conflict'
+      preLoaderRoute: typeof ConflictRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attack': {
+      id: '/attack'
+      path: '/attack'
+      fullPath: '/attack'
+      preLoaderRoute: typeof AttackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +197,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  AttackRoute: AttackRoute,
+  ConflictRoute: ConflictRoute,
+  DashboardRoute: DashboardRoute,
+  DetectRoute: DetectRoute,
+  LogsRoute: LogsRoute,
+  ShieldRoute: ShieldRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
