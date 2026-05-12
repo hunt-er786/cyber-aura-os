@@ -233,16 +233,21 @@ export function DemoController() {
         {state.active && (
           <motion.div
             key="hud"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[min(560px,calc(100vw-1.5rem))]
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+            animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: prefersReducedMotion ? 0.1 : 0.25 }}
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[min(620px,calc(100vw-1.5rem))]
                        glass border border-cyber-cyan/40 rounded-xl p-3 shadow-2xl"
+            role="region"
+            aria-label="Demo mode controller"
           >
             <div className="flex items-center gap-3">
               <div className="relative size-9 rounded-md bg-cyber-cyan/15 grid place-items-center">
                 <Sparkles className="size-4 text-cyber-cyan" />
-                <span className="absolute inset-0 rounded-md border border-cyber-cyan/40 animate-pulse" />
+                {!prefersReducedMotion && (
+                  <span className="absolute inset-0 rounded-md border border-cyber-cyan/40 animate-pulse" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">
@@ -253,9 +258,18 @@ export function DemoController() {
                 </div>
               </div>
               <button
+                onClick={toggleCaptions}
+                className="size-9 grid place-items-center rounded-md border border-border/60 text-muted-foreground hover:text-cyber-cyan hover:border-cyber-cyan/40"
+                aria-label={state.captions ? "Hide captions" : "Show captions"}
+                aria-pressed={state.captions}
+              >
+                {state.captions ? <Captions className="size-4" /> : <CaptionsOff className="size-4" />}
+              </button>
+              <button
                 onClick={toggleMute}
                 className="size-9 grid place-items-center rounded-md border border-border/60 text-muted-foreground hover:text-cyber-cyan hover:border-cyber-cyan/40"
                 aria-label={state.muted ? "Unmute narration" : "Mute narration"}
+                aria-pressed={!state.muted}
               >
                 {state.muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
               </button>
@@ -266,23 +280,57 @@ export function DemoController() {
                 <Square className="size-3.5" /> STOP
               </button>
             </div>
+
+            {/* Captions */}
+            {state.captions && (
+              <div
+                className="mt-3 rounded-md border border-cyber-cyan/20 bg-background/40 px-3 py-2 min-h-[3.5rem]"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <div className="text-[9px] font-mono tracking-[0.3em] text-cyber-cyan/70 mb-1">
+                  CAPTION · {Math.min(captionIdx + 1, sentences.length)}/{sentences.length || 1}
+                </div>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={`${state.step}-${captionIdx}`}
+                    initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                    transition={{ duration: prefersReducedMotion ? 0.05 : 0.2 }}
+                    className="text-[13px] leading-snug text-foreground/90 font-mono"
+                  >
+                    {sentences[captionIdx] ?? ""}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+            )}
+
             {/* progress */}
             <div className="mt-2 h-1 rounded-full bg-secondary overflow-hidden">
-              <motion.div
-                key={state.step}
-                initial={{ width: "0%" }}
-                animate={{ width: "100%" }}
-                transition={{ duration: (SCRIPT[state.step]?.duration ?? 8000) / 1000, ease: "linear" }}
-                className="h-full bg-gradient-to-r from-cyber-cyan to-cyber-blue"
-              />
+              {prefersReducedMotion ? (
+                <div
+                  className="h-full bg-gradient-to-r from-cyber-cyan to-cyber-blue"
+                  style={{ width: `${((state.step + 1) / SCRIPT.length) * 100}%` }}
+                />
+              ) : (
+                <motion.div
+                  key={state.step}
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: (SCRIPT[state.step]?.duration ?? 8000) / 1000, ease: "linear" }}
+                  className="h-full bg-gradient-to-r from-cyber-cyan to-cyber-blue"
+                />
+              )}
             </div>
             <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-muted-foreground tracking-widest">
-              <span>AUTO-PILOT · NARRATED</span>
+              <span>AUTO-PILOT · {state.muted ? "MUTED" : "NARRATED"}{state.captions ? " · CC" : ""}</span>
               <div className="flex items-center gap-1.5">
                 {SCRIPT.map((s, i) => (
                   <Link
                     key={s.to}
                     to={s.to}
+                    aria-label={`Jump to ${s.title}`}
                     className={`size-1.5 rounded-full ${i === state.step ? "bg-cyber-cyan" : i < state.step ? "bg-cyber-emerald/70" : "bg-muted-foreground/30"}`}
                   />
                 ))}
