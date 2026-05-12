@@ -64,11 +64,6 @@ const SCRIPT: Step[] = [
 
 const STORAGE_KEY = "shield-os.demo";
 
-type DemoState = {
-  active: boolean;
-  step: number;
-  muted: boolean;
-};
 
 type DemoState = {
   active: boolean;
