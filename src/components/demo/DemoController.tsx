@@ -170,13 +170,13 @@ export function DemoController() {
   }, [path]);
 
   const start = () => {
-    setState({ active: true, step: 0, muted: state.muted });
+    setState({ active: true, step: 0, muted: state.muted, captions: state.captions });
   };
   const stop = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    setState({ active: false, step: 0, muted: state.muted });
+    setState({ active: false, step: 0, muted: state.muted, captions: state.captions });
   };
   const toggleMute = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -184,6 +184,7 @@ export function DemoController() {
     }
     setState((s) => ({ ...s, muted: !s.muted }));
   };
+  const toggleCaptions = () => setState((s) => ({ ...s, captions: !s.captions }));
 
   return (
     <>
