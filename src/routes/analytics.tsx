@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   AreaChart, Area,
 } from "recharts";
-import { useMemo } from "react";
+import { useMemo, Fragment } from "react";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
@@ -138,8 +138,8 @@ function Heatmap() {
           <div key={h} className="text-[9px] text-muted-foreground text-center font-mono">{h}</div>
         ))}
         {days.map((d, di) => (
-          <>
-            <div key={`d${di}`} className="text-[10px] text-muted-foreground font-mono pr-2 self-center">{d}</div>
+          <Fragment key={`row-${di}`}>
+            <div className="text-[10px] text-muted-foreground font-mono pr-2 self-center">{d}</div>
             {hours.map((h) => {
               const v = Math.abs(Math.sin((di + 1) * (h + 1) * 0.37)) * 0.9 + Math.random() * 0.1;
               return (
@@ -153,7 +153,7 @@ function Heatmap() {
                 />
               );
             })}
-          </>
+          </Fragment>
         ))}
       </div>
       <div className="mt-3 flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
