@@ -110,10 +110,29 @@ export function DemoController() {
   const router = useRouter();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [state, setState] = useState<DemoState>(() => readState());
+  const [captionIdx, setCaptionIdx] = useState(0);
   const timerRef = useRef<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+
+  const sentences = useMemo(
+    () => splitNarration(SCRIPT[state.step]?.narration ?? ""),
+    [state.step],
+  );
 
   // Persist
   useEffect(() => { writeState(state); }, [state]);
+
+  // Drive caption rotation in sync with step duration
+  useEffect(() => {
+    setCaptionIdx(0);
+    if (!state.active || sentences.length <= 1) return;
+    const dur = SCRIPT[state.step]?.duration ?? 8000;
+    const per = Math.max(1500, Math.floor(dur / sentences.length));
+    const id = window.setInterval(() => {
+      setCaptionIdx((i) => Math.min(i + 1, sentences.length - 1));
+    }, per);
+    return () => clearInterval(id);
+  }, [state.active, state.step, sentences]);
 
   // Warm up voices (some browsers load async)
   useEffect(() => {
