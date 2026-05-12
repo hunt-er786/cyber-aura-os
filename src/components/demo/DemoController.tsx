@@ -212,9 +212,9 @@ export function DemoController() {
         {!state.active && (
           <motion.button
             key="launch"
-            initial={{ opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
             onClick={start}
             className="fixed bottom-5 right-5 z-50 group inline-flex items-center gap-2 px-4 py-2.5 rounded-full
                        bg-gradient-to-r from-cyber-cyan to-cyber-blue text-background font-display
