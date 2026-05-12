@@ -1,64 +1,86 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
 import { conflictScript } from "@/data/cyber";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Skull, Shield, Cpu, Play, Pause, RotateCcw, FastForward, Trophy } from "lucide-react";
+import {
+  Skull, Shield, Cpu, Play, Pause, RotateCcw, FastForward,
+  TrendingUp, TrendingDown, Activity, Target,
+} from "lucide-react";
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
+} from "recharts";
 
 export const Route = createFileRoute("/conflict")({
   component: Conflict,
   head: () => ({
     meta: [
-      { title: "AI vs AI — Conflict Engine" },
-      { name: "description", content: "Watch attack and defense AIs battle in real time." },
+      { title: "Adversarial Simulation — AI Shield OS" },
+      { name: "description", content: "Continuous adversarial simulation between attack and defense AI." },
     ],
   }),
 });
 
 type Line = { id: number; who: "ATTACK" | "DEFENSE" | "SYSTEM"; msg: string; ts: string };
+type Point = { t: number; surface: number; posture: number };
 
 const SPEEDS = { "1x": 1100, "2x": 600, "4x": 280 } as const;
 type Speed = keyof typeof SPEEDS;
 
 function Conflict() {
   const [lines, setLines] = useState<Line[]>([]);
-  const [attackHp, setAttackHp] = useState(100);
-  const [defenseHp, setDefenseHp] = useState(100);
+  const [surface, setSurface] = useState(38);   // threat surface %
+  const [posture, setPosture] = useState(86);   // defense posture %
+  const [series, setSeries] = useState<Point[]>(() =>
+    Array.from({ length: 24 }, (_, i) => ({ t: i, surface: 38, posture: 86 }))
+  );
   const [running, setRunning] = useState(true);
   const [speed, setSpeed] = useState<Speed>("1x");
-  const [round, setRound] = useState(1);
-  const [winner, setWinner] = useState<"DEFENSE" | "ATTACK" | null>(null);
+  const [counts, setCounts] = useState({ detected: 0, mitigated: 0, mttr: 1.4 });
+
   const idRef = useRef(0);
   const cursorRef = useRef(0);
+  const tRef = useRef(24);
   const logRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
-    setLines([]); setAttackHp(100); setDefenseHp(100);
-    setWinner(null); setRound((r) => r + 1);
+    setLines([]); setSurface(38); setPosture(86); setCounts({ detected: 0, mitigated: 0, mttr: 1.4 });
     cursorRef.current = 0; idRef.current = 0;
-    setRunning(true);
+    setSeries(Array.from({ length: 24 }, (_, i) => ({ t: i, surface: 38, posture: 86 })));
   };
 
   useEffect(() => {
-    if (!running || winner) return;
+    if (!running) return;
     const id = setInterval(() => {
       const item = conflictScript[cursorRef.current % conflictScript.length];
       cursorRef.current += 1;
       idRef.current += 1;
       const ts = new Date().toISOString().slice(11, 19);
-      setLines((l) => [...l, { id: idRef.current, who: item.who as Line["who"], msg: item.msg, ts }].slice(-60));
-      if (item.who === "ATTACK") setDefenseHp((h) => Math.max(0, h - 4));
-      else if (item.who === "DEFENSE") setAttackHp((h) => Math.max(0, h - 6));
-      else { setAttackHp((h) => Math.max(0, h - 18)); setDefenseHp((h) => Math.min(100, h + 12)); }
+      setLines((l) => [...l, { id: idRef.current, who: item.who as Line["who"], msg: item.msg, ts }].slice(-80));
+
+      // Smooth oscillating, never zeroed-out metrics
+      let nextSurface = surface;
+      let nextPosture = posture;
+      if (item.who === "ATTACK") {
+        nextSurface = Math.min(78, surface + 3 + Math.random() * 2);
+        nextPosture = Math.max(62, posture - 1.5);
+        setCounts((c) => ({ ...c, detected: c.detected + 1 }));
+      } else if (item.who === "DEFENSE") {
+        nextSurface = Math.max(18, surface - 4 - Math.random() * 2);
+        nextPosture = Math.min(99, posture + 1.2);
+        setCounts((c) => ({ ...c, mitigated: c.mitigated + 1, mttr: Math.max(0.4, c.mttr - 0.04) }));
+      } else {
+        nextSurface = Math.max(14, surface - 8);
+        nextPosture = Math.min(99, posture + 3);
+      }
+      setSurface(nextSurface);
+      setPosture(nextPosture);
+      tRef.current += 1;
+      setSeries((s) => [...s.slice(1), { t: tRef.current, surface: nextSurface, posture: nextPosture }]);
     }, SPEEDS[speed]);
     return () => clearInterval(id);
-  }, [running, speed, winner]);
-
-  useEffect(() => {
-    if (attackHp <= 0 && !winner) setWinner("DEFENSE");
-    if (defenseHp <= 0 && !winner) setWinner("ATTACK");
-  }, [attackHp, defenseHp, winner]);
+  }, [running, speed, surface, posture]);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
@@ -69,18 +91,14 @@ function Conflict() {
       <div className="space-y-6">
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// CONFLICT ENGINE · ROUND {round.toString().padStart(2, "0")}</div>
-            <h1 className="mt-1 font-display text-2xl sm:text-3xl md:text-4xl">
-              <span className="text-cyber-red text-glow-red">ATTACK AI</span>
-              <span className="mx-2 md:mx-3 text-muted-foreground text-base md:text-2xl">vs</span>
-              <span className="text-cyber-cyan text-glow-cyan">DEFENSE AI</span>
-            </h1>
+            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// ADVERSARIAL SIMULATION</div>
+            <h1 className="mt-1 font-display text-2xl sm:text-3xl md:text-4xl">Continuous Red vs Blue Engagement</h1>
+            <p className="mt-1.5 text-xs text-muted-foreground font-mono">Autonomous attack and defense models running in a closed-loop testbed.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setRunning((r) => !r)}
-              disabled={!!winner}
-              className="px-3 h-9 rounded-md border border-cyber-cyan/40 text-cyber-cyan font-mono text-[11px] tracking-widest hover:bg-cyber-cyan/10 inline-flex items-center gap-2 disabled:opacity-40"
+              className="px-3 h-9 rounded-md border border-cyber-cyan/40 text-cyber-cyan font-mono text-[11px] tracking-widest hover:bg-cyber-cyan/10 inline-flex items-center gap-2"
             >
               {running ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
               {running ? "PAUSE" : "RESUME"}
@@ -106,100 +124,124 @@ function Conflict() {
           </div>
         </div>
 
-        <div
-          className="relative rounded-xl border border-border/60 overflow-hidden p-4 sm:p-6"
-          style={{ background: "var(--gradient-conflict)" }}
-        >
-          <div className="absolute inset-0 grid-bg-fine opacity-40 pointer-events-none" />
+        {/* KPI strip */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Kpi label="Threats Detected" value={counts.detected} icon={<Target className="size-4" />} tone="red" trend={counts.detected % 2 === 0 ? "up" : "flat"} />
+          <Kpi label="Threats Mitigated" value={counts.mitigated} icon={<Shield className="size-4" />} tone="emerald" trend="up" />
+          <Kpi label="Mean Time to Respond" value={`${counts.mttr.toFixed(2)}s`} icon={<Activity className="size-4" />} tone="cyan" trend="down" />
+          <Kpi label="Engagement Status" value={running ? "ACTIVE" : "PAUSED"} icon={<Cpu className="size-4" />} tone={running ? "emerald" : "amber"} />
+        </div>
 
-          <div className="relative grid grid-cols-3 gap-3 sm:gap-6 items-center">
-            <Combatant side="left" name="ATTACK AI" sub="adversary.gen.v4" hp={attackHp} tone="red" icon={<Skull className="size-6 sm:size-8" />} />
+        {/* Engagement panel — clean, professional, no game UI */}
+        <div className="grid lg:grid-cols-3 gap-4">
+          <Panel title="ENGAGEMENT OVERVIEW" subtitle="adversary vs defense model" className="lg:col-span-2">
+            <div className="grid grid-cols-3 items-center gap-4 py-2">
+              <ModelCard
+                role="ADVERSARY"
+                name="adversary.gen.v4"
+                tone="red"
+                icon={<Skull className="size-5" />}
+                metrics={[
+                  { k: "Sophistication", v: "9.2 / 10" },
+                  { k: "Mutation rate", v: "high" },
+                ]}
+              />
 
-            <div className="grid place-items-center">
-              <motion.div
-                animate={{ scale: [1, 1.06, 1] }}
-                transition={{ duration: 1.4, repeat: Infinity }}
-                className="relative size-20 sm:size-28 md:size-32 rounded-full grid place-items-center border border-cyber-cyan/40 glow-cyan"
-                style={{ background: "radial-gradient(circle, oklch(0.85 0.18 200 / 0.15), transparent 70%)" }}
-              >
-                <Cpu className="size-7 sm:size-10 text-cyber-cyan text-glow-cyan" />
-                <span className="absolute -bottom-3 text-[9px] sm:text-[10px] font-display tracking-[0.3em] text-cyber-cyan whitespace-nowrap">NEXUS CORE</span>
-              </motion.div>
+              <div className="grid place-items-center">
+                <div className="relative size-20 sm:size-24 rounded-full grid place-items-center border border-cyber-cyan/30 glow-cyan"
+                  style={{ background: "radial-gradient(circle, oklch(0.85 0.18 200 / 0.12), transparent 70%)" }}>
+                  <Cpu className="size-7 text-cyber-cyan" />
+                </div>
+                <div className="mt-2 text-[10px] tracking-[0.3em] text-cyber-cyan font-display">NEXUS CORE</div>
+                <div className="text-[10px] text-muted-foreground font-mono">orchestrator</div>
+              </div>
+
+              <ModelCard
+                role="DEFENSE"
+                name="shield.os.v4.21"
+                tone="cyan"
+                icon={<Shield className="size-5" />}
+                metrics={[
+                  { k: "Coverage", v: "98.4%" },
+                  { k: "Learning rate", v: "+0.004" },
+                ]}
+              />
             </div>
 
-            <Combatant side="right" name="DEFENSE AI" sub="shield.os.v4.21" hp={defenseHp} tone="cyan" icon={<Shield className="size-6 sm:size-8" />} />
-          </div>
+            {/* time series */}
+            <div className="mt-4 h-56">
+              <ResponsiveContainer>
+                <AreaChart data={series}>
+                  <defs>
+                    <linearGradient id="cf-r" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.65 0.26 25)" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="oklch(0.65 0.26 25)" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="cf-c" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.85 0.18 200)" stopOpacity={0.55} />
+                      <stop offset="100%" stopColor="oklch(0.85 0.18 200)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="oklch(0.85 0.18 200 / 0.08)" />
+                  <XAxis dataKey="t" tick={{ fill: "oklch(0.68 0.04 220)", fontSize: 10 }} />
+                  <YAxis domain={[0, 100]} tick={{ fill: "oklch(0.68 0.04 220)", fontSize: 10 }} />
+                  <Tooltip contentStyle={{ background: "oklch(0.18 0.04 250)", border: "1px solid oklch(0.85 0.18 200 / 0.4)", fontSize: 11 }} />
+                  <Area type="monotone" dataKey="surface" name="Threat Surface" stroke="oklch(0.65 0.26 25)" strokeWidth={2} fill="url(#cf-r)" />
+                  <Area type="monotone" dataKey="posture" name="Defense Posture" stroke="oklch(0.85 0.18 200)" strokeWidth={2} fill="url(#cf-c)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Panel>
 
-          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50" preserveAspectRatio="none">
-            <line x1="20%" y1="50%" x2="48%" y2="50%" stroke="oklch(0.65 0.26 25)" strokeWidth="1" strokeDasharray="4 6">
-              <animate attributeName="stroke-dashoffset" from="0" to="20" dur="0.8s" repeatCount="indefinite" />
-            </line>
-            <line x1="52%" y1="50%" x2="80%" y2="50%" stroke="oklch(0.85 0.18 200)" strokeWidth="1" strokeDasharray="4 6">
-              <animate attributeName="stroke-dashoffset" from="20" to="0" dur="0.8s" repeatCount="indefinite" />
-            </line>
-          </svg>
-
-          <AnimatePresence>
-            {winner && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 grid place-items-center bg-background/80 backdrop-blur-sm"
-              >
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                  className="text-center px-6"
-                >
-                  <Trophy className={`mx-auto size-12 ${winner === "DEFENSE" ? "text-cyber-emerald text-glow-emerald" : "text-cyber-red text-glow-red"}`} />
-                  <div className={`mt-4 font-display text-2xl sm:text-4xl tracking-widest ${winner === "DEFENSE" ? "text-cyber-emerald text-glow-emerald" : "text-cyber-red text-glow-red"}`}>
-                    {winner} AI WINS
-                  </div>
-                  <div className="mt-2 text-xs font-mono text-muted-foreground">
-                    {winner === "DEFENSE" ? "Threat fully neutralized · learning checkpoint saved" : "Defense breach detected · failover protocols engaged"}
-                  </div>
-                  <div className="mt-5 flex items-center justify-center gap-3">
-                    <button onClick={reset} className="px-4 h-10 rounded-md bg-cyber-cyan text-background font-display text-xs tracking-[0.2em] hover:scale-[1.02] transition">
-                      NEW ROUND
-                    </button>
-                    {winner === "DEFENSE" && (
-                      <Link to="/shield" className="px-4 h-10 inline-flex items-center rounded-md border border-cyber-emerald/50 text-cyber-emerald font-display text-xs tracking-[0.2em] hover:bg-cyber-emerald/10">
-                        GO TO SHIELD
-                      </Link>
-                    )}
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <Panel title="POSTURE METRICS" subtitle="real-time exposure">
+            <div className="space-y-5">
+              <Meter label="Threat Surface" value={surface} tone="red" hint="lower is better" />
+              <Meter label="Defense Posture" value={posture} tone="emerald" hint="higher is better" />
+              <Meter label="Model Confidence" value={Math.min(99, 80 + (posture - surface) / 2)} tone="cyan" hint="defense AI" />
+            </div>
+            <div className="mt-5 rounded-md border border-border/60 bg-card/40 p-3 text-[11px] font-mono leading-5">
+              <div className="text-muted-foreground tracking-widest text-[10px]">CURRENT VERDICT</div>
+              <div className={`mt-1 ${surface > 55 ? "text-cyber-red" : surface > 35 ? "text-cyber-amber" : "text-cyber-emerald"}`}>
+                {surface > 55 ? "Active intrusion attempts — countermeasures escalating"
+                 : surface > 35 ? "Sustained probing — defense holding within tolerance"
+                 : "Environment stable — defense maintaining superiority"}
+              </div>
+            </div>
+          </Panel>
         </div>
 
         <Panel
-          title="COMBAT TELEMETRY"
-          subtitle="real-time conflict log"
-          right={<span className="text-[10px] tracking-widest text-cyber-emerald animate-pulse">● {running && !winner ? "LIVE" : "PAUSED"}</span>}
+          title="ENGAGEMENT TELEMETRY"
+          subtitle="time-correlated event stream"
+          right={
+            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-widest text-muted-foreground">
+              <span className={`size-1.5 rounded-full ${running ? "bg-cyber-emerald animate-pulse" : "bg-cyber-amber"}`} />
+              {running ? "STREAMING" : "PAUSED"}
+            </span>
+          }
         >
           <div ref={logRef} className="font-mono text-[11px] sm:text-[12px] leading-6 max-h-[420px] overflow-auto pr-2">
             <AnimatePresence initial={false}>
               {lines.map((l) => (
                 <motion.div
                   key={l.id}
-                  initial={{ opacity: 0, x: l.who === "ATTACK" ? -16 : l.who === "DEFENSE" ? 16 : 0 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex flex-wrap gap-x-3"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap gap-x-3 border-b border-border/30 py-0.5"
                 >
                   <span className="text-muted-foreground tabular-nums">{l.ts}</span>
                   <span className={
-                    l.who === "ATTACK"  ? "text-cyber-red text-glow-red w-20 sm:w-24" :
-                    l.who === "DEFENSE" ? "text-cyber-cyan text-glow-cyan w-20 sm:w-24" :
-                    "text-cyber-emerald text-glow-emerald w-20 sm:w-24"
-                  }>{l.who}:</span>
+                    l.who === "ATTACK"  ? "text-cyber-red w-[88px] sm:w-[96px] tracking-widest" :
+                    l.who === "DEFENSE" ? "text-cyber-cyan w-[88px] sm:w-[96px] tracking-widest" :
+                    "text-cyber-emerald w-[88px] sm:w-[96px] tracking-widest"
+                  }>{l.who}</span>
                   <span className="text-foreground/90 flex-1 min-w-0 break-words">{l.msg}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
             {lines.length === 0 && (
-              <div className="text-muted-foreground">{">"} awaiting engagement...</div>
+              <div className="text-muted-foreground">awaiting first event...</div>
             )}
-            <div className="text-cyber-cyan">{">"} <span className="animate-blink">█</span></div>
           </div>
         </Panel>
       </div>
@@ -207,29 +249,70 @@ function Conflict() {
   );
 }
 
-function Combatant({
-  side, name, sub, hp, tone, icon,
-}: { side: "left" | "right"; name: string; sub: string; hp: number; tone: "red" | "cyan"; icon: React.ReactNode }) {
-  const color = tone === "red" ? "text-cyber-red text-glow-red" : "text-cyber-cyan text-glow-cyan";
-  const bar = tone === "red" ? "from-cyber-red to-cyber-amber" : "from-cyber-cyan to-cyber-blue";
+function Kpi({
+  label, value, icon, tone, trend,
+}: { label: string; value: React.ReactNode; icon: React.ReactNode; tone: "cyan" | "red" | "emerald" | "amber"; trend?: "up" | "down" | "flat" }) {
+  const color = {
+    cyan: "text-cyber-cyan", red: "text-cyber-red", emerald: "text-cyber-emerald", amber: "text-cyber-amber",
+  }[tone];
   return (
-    <div className={`relative ${side === "right" ? "text-right" : ""}`}>
-      <div className={`inline-flex items-center gap-2 sm:gap-3 ${side === "right" ? "flex-row-reverse" : ""}`}>
-        <div className={`size-12 sm:size-16 rounded-lg grid place-items-center glass ${tone === "red" ? "border-cyber-red/40" : "border-cyber-cyan/40"}`}>
-          <span className={color}>{icon}</span>
+    <div className="glass rounded-lg p-3.5">
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] tracking-[0.2em] text-muted-foreground">{label.toUpperCase()}</div>
+        <span className={color}>{icon}</span>
+      </div>
+      <div className={`mt-2 font-display text-2xl ${color}`}>{value}</div>
+      {trend && (
+        <div className="mt-1 flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
+          {trend === "up" && <TrendingUp className="size-3 text-cyber-emerald" />}
+          {trend === "down" && <TrendingDown className="size-3 text-cyber-emerald" />}
+          {trend === "up" ? "trending up" : trend === "down" ? "improving" : "stable"}
         </div>
-        <div className={side === "right" ? "text-right" : ""}>
-          <div className={`font-display text-sm sm:text-xl tracking-widest ${color}`}>{name}</div>
-          <div className="text-[9px] sm:text-[10px] tracking-widest text-muted-foreground font-mono">{sub}</div>
+      )}
+    </div>
+  );
+}
+
+function ModelCard({
+  role, name, tone, icon, metrics,
+}: { role: string; name: string; tone: "red" | "cyan"; icon: React.ReactNode; metrics: { k: string; v: string }[] }) {
+  const color = tone === "red" ? "text-cyber-red" : "text-cyber-cyan";
+  const border = tone === "red" ? "border-cyber-red/30" : "border-cyber-cyan/30";
+  return (
+    <div className={`rounded-lg border ${border} bg-card/40 p-3`}>
+      <div className="flex items-center gap-2">
+        <span className={`size-9 rounded-md grid place-items-center border ${border} ${color}`}>{icon}</span>
+        <div className="min-w-0">
+          <div className={`font-display text-xs tracking-[0.2em] ${color}`}>{role}</div>
+          <div className="text-[10px] text-muted-foreground font-mono truncate">{name}</div>
         </div>
       </div>
-      <div className="mt-3 sm:mt-4 space-y-1">
-        <div className="flex items-center justify-between text-[10px] tracking-widest text-muted-foreground">
-          <span>INTEGRITY</span><span className="tabular-nums">{Math.round(hp)}%</span>
+      <div className="mt-3 space-y-1 text-[11px] font-mono">
+        {metrics.map((m) => (
+          <div key={m.k} className="flex items-center justify-between">
+            <span className="text-muted-foreground">{m.k}</span>
+            <span className="text-foreground">{m.v}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Meter({ label, value, tone, hint }: { label: string; value: number; tone: "red" | "emerald" | "cyan"; hint: string }) {
+  const color = { red: "var(--cyber-red)", emerald: "var(--cyber-emerald)", cyan: "var(--cyber-cyan)" }[tone];
+  return (
+    <div>
+      <div className="flex items-end justify-between mb-1.5">
+        <div>
+          <div className="text-[10px] tracking-[0.2em] text-muted-foreground">{label.toUpperCase()}</div>
+          <div className="text-[10px] text-muted-foreground/70 font-mono">{hint}</div>
         </div>
-        <div className="h-2 rounded-full bg-secondary overflow-hidden">
-          <motion.div className={`h-full bg-gradient-to-r ${bar}`} animate={{ width: `${hp}%` }} transition={{ duration: 0.5 }} />
-        </div>
+        <div className="font-display text-xl tabular-nums" style={{ color }}>{Math.round(value)}%</div>
+      </div>
+      <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+        <motion.div className="h-full" style={{ background: color }}
+          animate={{ width: `${value}%` }} transition={{ duration: 0.5 }} />
       </div>
     </div>
   );
