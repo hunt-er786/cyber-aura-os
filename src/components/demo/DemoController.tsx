@@ -1,7 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useRouterState, Link } from "@tanstack/react-router";
-import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Volume2, VolumeX, Sparkles } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Play, Square, Volume2, VolumeX, Sparkles, Captions, CaptionsOff } from "lucide-react";
+
+function splitNarration(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 type Step = {
   to: string;
