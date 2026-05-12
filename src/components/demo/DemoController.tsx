@@ -70,14 +70,21 @@ type DemoState = {
   muted: boolean;
 };
 
+type DemoState = {
+  active: boolean;
+  step: number;
+  muted: boolean;
+  captions: boolean;
+};
+
 function readState(): DemoState {
-  if (typeof window === "undefined") return { active: false, step: 0, muted: false };
+  if (typeof window === "undefined") return { active: false, step: 0, muted: false, captions: true };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { active: false, step: 0, muted: false };
-    return { active: false, step: 0, muted: false, ...JSON.parse(raw) };
+    if (!raw) return { active: false, step: 0, muted: false, captions: true };
+    return { active: false, step: 0, muted: false, captions: true, ...JSON.parse(raw) };
   } catch {
-    return { active: false, step: 0, muted: false };
+    return { active: false, step: 0, muted: false, captions: true };
   }
 }
 
