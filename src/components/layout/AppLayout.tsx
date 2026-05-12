@@ -22,11 +22,13 @@ function useCurrentNav() {
 }
 
 function Topbar({ onMenu }: { onMenu: () => void }) {
-  const [time, setTime] = useState(() => new Date());
+  const [time, setTime] = useState<string>("");
   const router = useRouter();
   const { current } = useCurrentNav();
   useEffect(() => {
-    const id = setInterval(() => setTime(new Date()), 1000);
+    const tick = () => setTime(new Date().toISOString().slice(11, 19));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
   return (
@@ -69,8 +71,8 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
           <span className="text-cyber-emerald tracking-widest">ONLINE</span>
         </div>
         <Bell className="size-4 text-cyber-amber animate-pulse hidden sm:block" />
-        <div className="text-[10px] md:text-xs font-mono text-cyber-cyan text-glow-cyan tracking-widest tabular-nums">
-          {time.toISOString().slice(11, 19)}
+        <div className="text-[10px] md:text-xs font-mono text-cyber-cyan text-glow-cyan tracking-widest tabular-nums min-w-[64px] text-right">
+          {time || "--:--:--"}
         </div>
       </div>
     </header>
