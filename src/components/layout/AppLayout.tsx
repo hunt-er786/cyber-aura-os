@@ -169,7 +169,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen w-full flex grid-bg relative">
-      <div className="pointer-events-none fixed inset-0 scanline opacity-60" />
+      <div className="pointer-events-none fixed inset-0 scanline opacity-20" />
       <Sidebar />
       <MobileDrawer open={open} onClose={() => setOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
