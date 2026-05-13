@@ -8,9 +8,11 @@ import { useEffect, useState } from "react";
 
 const nav = [
   { to: "/dashboard", label: "Command", icon: Activity },
+  { to: "/warmap", label: "War Map", icon: Globe2 },
   { to: "/attack", label: "Attack Sim", icon: Skull },
   { to: "/detect", label: "Detection", icon: Radar },
   { to: "/conflict", label: "AI vs AI", icon: Swords },
+  { to: "/twins", label: "Digital Twins", icon: Building2 },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/shield", label: "Shield", icon: ShieldCheck },
   { to: "/logs", label: "Logs", icon: Terminal },
