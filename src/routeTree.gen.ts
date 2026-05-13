@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WarmapRouteImport } from './routes/warmap'
 import { Route as ShieldRouteImport } from './routes/shield'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as DetectRouteImport } from './routes/detect'
@@ -18,6 +19,11 @@ import { Route as AttackRouteImport } from './routes/attack'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WarmapRoute = WarmapRouteImport.update({
+  id: '/warmap',
+  path: '/warmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShieldRoute = ShieldRouteImport.update({
   id: '/shield',
   path: '/shield',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/detect': typeof DetectRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
+  '/warmap': typeof WarmapRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/detect': typeof DetectRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
+  '/warmap': typeof WarmapRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/detect': typeof DetectRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
+  '/warmap': typeof WarmapRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/detect'
     | '/logs'
     | '/shield'
+    | '/warmap'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/detect'
     | '/logs'
     | '/shield'
+    | '/warmap'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/detect'
     | '/logs'
     | '/shield'
+    | '/warmap'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,10 +144,18 @@ export interface RootRouteChildren {
   DetectRoute: typeof DetectRoute
   LogsRoute: typeof LogsRoute
   ShieldRoute: typeof ShieldRoute
+  WarmapRoute: typeof WarmapRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/warmap': {
+      id: '/warmap'
+      path: '/warmap'
+      fullPath: '/warmap'
+      preLoaderRoute: typeof WarmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shield': {
       id: '/shield'
       path: '/shield'
@@ -204,7 +224,18 @@ const rootRouteChildren: RootRouteChildren = {
   DetectRoute: DetectRoute,
   LogsRoute: LogsRoute,
   ShieldRoute: ShieldRoute,
+  WarmapRoute: WarmapRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
