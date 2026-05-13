@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarmapRouteImport } from './routes/warmap'
+import { Route as TwinsRouteImport } from './routes/twins'
 import { Route as ShieldRouteImport } from './routes/shield'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as DetectRouteImport } from './routes/detect'
@@ -22,6 +23,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const WarmapRoute = WarmapRouteImport.update({
   id: '/warmap',
   path: '/warmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TwinsRoute = TwinsRouteImport.update({
+  id: '/twins',
+  path: '/twins',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShieldRoute = ShieldRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/detect': typeof DetectRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
+  '/twins': typeof TwinsRoute
   '/warmap': typeof WarmapRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/detect': typeof DetectRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
+  '/twins': typeof TwinsRoute
   '/warmap': typeof WarmapRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/detect': typeof DetectRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
+  '/twins': typeof TwinsRoute
   '/warmap': typeof WarmapRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/detect'
     | '/logs'
     | '/shield'
+    | '/twins'
     | '/warmap'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/detect'
     | '/logs'
     | '/shield'
+    | '/twins'
     | '/warmap'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/detect'
     | '/logs'
     | '/shield'
+    | '/twins'
     | '/warmap'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   DetectRoute: typeof DetectRoute
   LogsRoute: typeof LogsRoute
   ShieldRoute: typeof ShieldRoute
+  TwinsRoute: typeof TwinsRoute
   WarmapRoute: typeof WarmapRoute
 }
 
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/warmap'
       fullPath: '/warmap'
       preLoaderRoute: typeof WarmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/twins': {
+      id: '/twins'
+      path: '/twins'
+      fullPath: '/twins'
+      preLoaderRoute: typeof TwinsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shield': {
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   DetectRoute: DetectRoute,
   LogsRoute: LogsRoute,
   ShieldRoute: ShieldRoute,
+  TwinsRoute: TwinsRoute,
   WarmapRoute: WarmapRoute,
 }
 export const routeTree = rootRouteImport
