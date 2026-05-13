@@ -114,6 +114,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <Copilot />
       <DemoController />
     </QueryClientProvider>
   );
