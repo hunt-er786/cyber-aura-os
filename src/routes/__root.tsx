@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { DemoController } from "@/components/demo/DemoController";
+import { Copilot } from "@/components/ai/Copilot";
 
 function NotFoundComponent() {
   return (
@@ -113,6 +114,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <Copilot />
       <DemoController />
     </QueryClientProvider>
   );
