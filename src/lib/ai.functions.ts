@@ -65,7 +65,6 @@ Given a cyber event, return ONLY a JSON object with this exact shape (no prose, 
 }`;
 
 export const analyzeThreat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       event: z.object({
