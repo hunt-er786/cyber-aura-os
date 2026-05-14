@@ -75,6 +75,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
         <Bell className="size-4 text-cyber-amber animate-pulse hidden sm:block" />
         <div className="text-[10px] md:text-xs font-mono text-cyber-cyan text-glow-cyan tracking-widest tabular-nums min-w-[64px] text-right">
           {time || "--:--:--"}
+        </div>
       </div>
     </header>
   );
