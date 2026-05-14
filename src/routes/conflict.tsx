@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
-import { conflictScript } from "@/data/cyber";
+import { conflictScript, ingestionSources, contradictionResolution, constraintTrace } from "@/data/cyber";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Skull, Shield, Cpu, Play, Pause, RotateCcw, FastForward,
-  TrendingUp, TrendingDown, Activity, Target,
+  TrendingUp, TrendingDown, Activity, Target, Database, GitMerge, Gavel, CheckCircle2, XCircle, AlertTriangle,
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
