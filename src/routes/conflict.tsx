@@ -238,6 +238,108 @@ function Conflict() {
           </Panel>
         </div>
 
+        {/* Section 7 — Multi-Source Ingestion */}
+        <Panel
+          title="MULTI-SOURCE INGESTION"
+          subtitle="5 active feeds · pre-engagement signal fusion"
+          right={<Database className="size-4 text-cyber-cyan" />}
+        >
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2.5">
+            {ingestionSources.map((s) => {
+              const stale = s.id === "S5";
+              return (
+                <div
+                  key={s.id}
+                  className={`rounded-md border bg-card/40 p-3 ${stale ? "border-cyber-amber/50" : "border-border/60"}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`text-[10px] font-display tracking-widest ${stale ? "text-cyber-amber" : "text-cyber-cyan"}`}>{s.id}</span>
+                      <span className="text-xs font-mono text-foreground truncate">{s.name}</span>
+                    </div>
+                    <span className="text-[9px] tracking-widest text-muted-foreground font-mono">{s.channel}</span>
+                  </div>
+                  <div className="mt-1.5 text-[11px] font-mono text-foreground/80 leading-snug">{s.signal}</div>
+                  <div className="mt-2 flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-muted-foreground">
+                      age <span className={stale ? "text-cyber-amber" : "text-foreground"}>{s.ageSec >= 60 ? `${Math.floor(s.ageSec/60)}m ${s.ageSec%60}s` : `${s.ageSec}s`}</span>
+                    </span>
+                    <span className="text-muted-foreground">trust <span className="text-foreground">{s.trust.toFixed(2)}</span></span>
+                    {stale ? (
+                      <span className="inline-flex items-center gap-1 text-cyber-amber"><AlertTriangle className="size-3" /> STALE</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-cyber-emerald"><CheckCircle2 className="size-3" /> FRESH</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+
+        {/* Section 8 + 12 — side by side */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          <Panel
+            title="CONTRADICTION ENGINE"
+            subtitle="conflict resolution trace"
+            tone="amber"
+            right={<GitMerge className="size-4 text-cyber-amber" />}
+          >
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded border border-cyber-cyan/40 text-cyber-cyan text-[10px] font-display tracking-widest">S4 · ENDPOINT LOGS</span>
+              <span className="text-cyber-red font-mono text-[11px]">⇄ CONFLICT</span>
+              <span className="px-2 py-0.5 rounded border border-cyber-amber/40 text-cyber-amber text-[10px] font-display tracking-widest">S5 · SOC REPORT</span>
+            </div>
+            <ol className="mt-3 space-y-1.5 text-[11px] font-mono leading-5">
+              {contradictionResolution.reasoning.map((r, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-muted-foreground tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="text-foreground/90">{r}</span>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-3 rounded-md border border-cyber-amber/40 bg-cyber-amber/5 px-3 py-2 text-[11px] font-mono">
+              <span className="text-cyber-amber tracking-widest">VERDICT · </span>
+              <span className="text-foreground">S5 marked </span>
+              <span className="text-cyber-amber font-display tracking-widest">STALE</span>
+              <span className="text-foreground"> — outdated by 47 minutes. Trusting S4.</span>
+            </div>
+          </Panel>
+
+          <Panel
+            title="CONSTRAINT ENGINE"
+            subtitle="action evaluation · pre-action"
+            tone="emerald"
+            right={<Gavel className="size-4 text-cyber-emerald" />}
+          >
+            <ul className="space-y-2">
+              {constraintTrace.map((c) => {
+                const ok = c.status === "SELECTED";
+                return (
+                  <li
+                    key={c.action}
+                    className={`rounded-md border px-3 py-2 ${ok ? "border-cyber-emerald/50 bg-cyber-emerald/5" : "border-cyber-red/40 bg-cyber-red/5"}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {ok
+                          ? <CheckCircle2 className="size-3.5 text-cyber-emerald shrink-0" />
+                          : <XCircle className="size-3.5 text-cyber-red shrink-0" />}
+                        <span className="text-xs font-mono text-foreground truncate">{c.action}</span>
+                      </div>
+                      <span className={`text-[10px] font-display tracking-widest ${ok ? "text-cyber-emerald" : "text-cyber-red"}`}>{c.status}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] font-mono text-muted-foreground pl-5">{c.reason}</div>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="mt-3 text-[11px] font-mono text-cyber-emerald">
+              → Selected strategy: <span className="font-display tracking-widest">PARTIAL ISOLATION</span>
+            </div>
+          </Panel>
+        </div>
+
         <Panel
           title="ENGAGEMENT TELEMETRY"
           subtitle="time-correlated event stream"
