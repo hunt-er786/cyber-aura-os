@@ -71,16 +71,16 @@ export const analyzeThreat = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       event: z.object({
-        vector: z.string(),
-        severity: z.number(),
-        srcIp: z.string(),
-        dstIp: z.string(),
-        port: z.number(),
-        protocol: z.string(),
-        mitre: z.string(),
-        cve: z.string().optional(),
-        region: z.string(),
-        reasons: z.array(z.string()),
+        vector: z.string().min(1).max(100),
+        severity: z.number().int().min(0).max(100),
+        srcIp: z.string().min(1).max(45),
+        dstIp: z.string().min(1).max(45),
+        port: z.number().int().min(0).max(65535),
+        protocol: z.string().min(1).max(20),
+        mitre: z.string().min(1).max(50),
+        cve: z.string().max(50).optional(),
+        region: z.string().min(1).max(100),
+        reasons: z.array(z.string().min(1).max(300)).max(10),
       }),
     }).parse,
   )
