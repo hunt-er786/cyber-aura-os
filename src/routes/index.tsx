@@ -133,13 +133,23 @@ function Intro() {
         </motion.div>
       </div>
 
-      {/* Boot terminal */}
-      <div className="absolute bottom-6 left-6 right-6 max-w-2xl mx-auto glass rounded-md p-4 font-mono text-[11px] text-cyber-emerald/90">
-        {shown.map((l) => (
-          <div key={l}>{l}</div>
-        ))}
-        <div className="text-cyber-cyan">
-          {">"} <span className="animate-blink">█</span>
+      {/* Boot terminal — fixed top-right window, never overlaps CTAs */}
+      <div className="absolute top-4 right-4 z-20 w-[320px] max-w-[calc(100vw-2rem)] hidden md:block">
+        <div className="glass rounded-md border border-cyber-cyan/30 overflow-hidden shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-cyber-cyan/20 bg-cyber-cyan/5">
+            <span className="size-2 rounded-full bg-cyber-red/80" />
+            <span className="size-2 rounded-full bg-cyber-amber/80" />
+            <span className="size-2 rounded-full bg-cyber-emerald/80" />
+            <span className="ml-2 text-[10px] font-mono tracking-[0.2em] text-cyber-cyan/80">tty/boot.log</span>
+          </div>
+          <div className="p-3 font-mono text-[11px] text-cyber-emerald/90 max-h-[220px] overflow-hidden">
+            {shown.map((l) => (
+              <div key={l} className="truncate">{l}</div>
+            ))}
+            <div className="text-cyber-cyan">
+              {">"} <span className="animate-blink">█</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
