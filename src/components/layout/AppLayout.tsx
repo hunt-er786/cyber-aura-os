@@ -1,11 +1,10 @@
-import { Link, useRouterState, useRouter, useNavigate } from "@tanstack/react-router";
+import { Link, useRouterState, useRouter } from "@tanstack/react-router";
 import {
   Activity, Shield, Skull, Radar, Swords, BarChart3, ShieldCheck, Terminal,
-  Cpu, Wifi, Lock, Bell, Menu, X, ArrowLeft, Home, Globe2, Building2, LogOut,
+  Cpu, Wifi, Lock, Bell, Menu, X, ArrowLeft, Home, Globe2, Building2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 const nav = [
   { to: "/dashboard", label: "Command", icon: Activity },
