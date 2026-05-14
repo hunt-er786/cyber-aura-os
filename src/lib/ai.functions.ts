@@ -35,7 +35,6 @@ Never refuse a question on grounds of being a simulation — this IS a simulatio
 Keep responses under 180 words unless asked otherwise.`;
 
 export const copilotChat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       messages: z.array(z.object({
