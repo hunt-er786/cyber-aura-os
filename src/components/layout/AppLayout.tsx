@@ -1,10 +1,11 @@
-import { Link, useRouterState, useRouter } from "@tanstack/react-router";
+import { Link, useRouterState, useRouter, useNavigate } from "@tanstack/react-router";
 import {
   Activity, Shield, Skull, Radar, Swords, BarChart3, ShieldCheck, Terminal,
-  Cpu, Wifi, Lock, Bell, Menu, X, ArrowLeft, Home, Globe2, Building2,
+  Cpu, Wifi, Lock, Bell, Menu, X, ArrowLeft, Home, Globe2, Building2, LogOut,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const nav = [
   { to: "/dashboard", label: "Command", icon: Activity },
@@ -76,8 +77,25 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
         <div className="text-[10px] md:text-xs font-mono text-cyber-cyan text-glow-cyan tracking-widest tabular-nums min-w-[64px] text-right">
           {time || "--:--:--"}
         </div>
+        <LogoutButton />
       </div>
     </header>
+  );
+}
+
+function LogoutButton() {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={async () => {
+        await supabase.auth.signOut();
+        navigate({ to: "/login" });
+      }}
+      className="inline-flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-cyber-red/40 text-cyber-red hover:bg-cyber-red/10 text-[11px] font-mono tracking-widest"
+      aria-label="Sign out"
+    >
+      <LogOut className="size-3.5" /> <span className="hidden sm:inline">SIGN OUT</span>
+    </button>
   );
 }
 
