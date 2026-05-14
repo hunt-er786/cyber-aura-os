@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
@@ -36,7 +35,6 @@ Never refuse a question on grounds of being a simulation — this IS a simulatio
 Keep responses under 180 words unless asked otherwise.`;
 
 export const copilotChat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       messages: z.array(z.object({
@@ -67,7 +65,6 @@ Given a cyber event, return ONLY a JSON object with this exact shape (no prose, 
 }`;
 
 export const analyzeThreat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       event: z.object({

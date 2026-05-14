@@ -1,23 +1,16 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
-  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 import { DemoController } from "@/components/demo/DemoController";
 import { Copilot } from "@/components/ai/Copilot";
-import { supabase } from "@/integrations/supabase/client";
-
-// Routes that don't require authentication
-const PUBLIC_PATHS = new Set<string>(["/", "/login"]);
 
 function NotFoundComponent() {
   return (
@@ -124,74 +117,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGate>
-        <Outlet />
-        <AuthedExtras />
-      </AuthGate>
+      <Outlet />
+      <Copilot />
+      <DemoController />
     </QueryClientProvider>
   );
 }
 
-function AuthedExtras() {
-  const [authed, setAuthed] = useState(false);
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setAuthed(!!session));
-    return () => sub.subscription.unsubscribe();
-  }, []);
-  if (!authed) return null;
-  return (
-    <>
-      <Copilot />
-      <DemoController />
-    </>
-  );
-}
-
-function AuthGate({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const [ready, setReady] = useState(false);
-  const [authed, setAuthed] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setAuthed(!!data.session);
-      setReady(true);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setAuthed(!!session);
-      router.invalidate();
-      queryClient.invalidateQueries();
-    });
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, [router, queryClient]);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (!authed && !PUBLIC_PATHS.has(path)) {
-      navigate({ to: "/login" });
-    }
-  }, [ready, authed, path, navigate]);
-
-  if (!ready && !PUBLIC_PATHS.has(path)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-cyber-cyan font-mono text-xs tracking-widest">
-        ESTABLISHING SECURE CHANNEL…
-      </div>
-    );
-  }
-
-  if (ready && !authed && !PUBLIC_PATHS.has(path)) {
-    return null;
-  }
-
-  return <>{children}</>;
-}
