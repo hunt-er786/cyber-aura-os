@@ -13,6 +13,7 @@ import { Route as WarmapRouteImport } from './routes/warmap'
 import { Route as TwinsRouteImport } from './routes/twins'
 import { Route as ShieldRouteImport } from './routes/shield'
 import { Route as LogsRouteImport } from './routes/logs'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DetectRouteImport } from './routes/detect'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConflictRouteImport } from './routes/conflict'
@@ -38,6 +39,11 @@ const ShieldRoute = ShieldRouteImport.update({
 const LogsRoute = LogsRouteImport.update({
   id: '/logs',
   path: '/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DetectRoute = DetectRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/conflict': typeof ConflictRoute
   '/dashboard': typeof DashboardRoute
   '/detect': typeof DetectRoute
+  '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
   '/twins': typeof TwinsRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/conflict': typeof ConflictRoute
   '/dashboard': typeof DashboardRoute
   '/detect': typeof DetectRoute
+  '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
   '/twins': typeof TwinsRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/conflict': typeof ConflictRoute
   '/dashboard': typeof DashboardRoute
   '/detect': typeof DetectRoute
+  '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/shield': typeof ShieldRoute
   '/twins': typeof TwinsRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/conflict'
     | '/dashboard'
     | '/detect'
+    | '/login'
     | '/logs'
     | '/shield'
     | '/twins'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/conflict'
     | '/dashboard'
     | '/detect'
+    | '/login'
     | '/logs'
     | '/shield'
     | '/twins'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/conflict'
     | '/dashboard'
     | '/detect'
+    | '/login'
     | '/logs'
     | '/shield'
     | '/twins'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   ConflictRoute: typeof ConflictRoute
   DashboardRoute: typeof DashboardRoute
   DetectRoute: typeof DetectRoute
+  LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
   ShieldRoute: typeof ShieldRoute
   TwinsRoute: typeof TwinsRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/logs'
       fullPath: '/logs'
       preLoaderRoute: typeof LogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/detect': {
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConflictRoute: ConflictRoute,
   DashboardRoute: DashboardRoute,
   DetectRoute: DetectRoute,
+  LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
   ShieldRoute: ShieldRoute,
   TwinsRoute: TwinsRoute,
