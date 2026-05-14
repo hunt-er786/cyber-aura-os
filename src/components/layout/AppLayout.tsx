@@ -75,26 +75,8 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
         <Bell className="size-4 text-cyber-amber animate-pulse hidden sm:block" />
         <div className="text-[10px] md:text-xs font-mono text-cyber-cyan text-glow-cyan tracking-widest tabular-nums min-w-[64px] text-right">
           {time || "--:--:--"}
-        </div>
-        <LogoutButton />
       </div>
     </header>
-  );
-}
-
-function LogoutButton() {
-  const navigate = useNavigate();
-  return (
-    <button
-      onClick={async () => {
-        await supabase.auth.signOut();
-        navigate({ to: "/login" });
-      }}
-      className="inline-flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-cyber-red/40 text-cyber-red hover:bg-cyber-red/10 text-[11px] font-mono tracking-widest"
-      aria-label="Sign out"
-    >
-      <LogOut className="size-3.5" /> <span className="hidden sm:inline">SIGN OUT</span>
-    </button>
   );
 }
 
