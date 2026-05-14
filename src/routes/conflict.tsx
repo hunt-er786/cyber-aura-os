@@ -44,11 +44,39 @@ function Conflict() {
   const tRef = useRef(24);
   const logRef = useRef<HTMLDivElement>(null);
 
+  const seed = () => {
+    // Section 7, 8, 12 — preamble injected at simulation start
+    const ts = () => new Date().toISOString().slice(11, 19);
+    const seeded: Line[] = [];
+    let id = idRef.current;
+    seeded.push({ id: ++id, who: "SYSTEM", msg: "// SECTION 7 — multi-source ingestion bootstrap", ts: ts() });
+    for (const s of ingestionSources) {
+      seeded.push({ id: ++id, who: "SYSTEM", msg: `INGEST ${s.id} (${s.name} · ${s.channel}) age=${s.ageSec}s trust=${s.trust} :: ${s.signal}`, ts: ts() });
+    }
+    seeded.push({ id: ++id, who: "DEFENSE", msg: "// SECTION 8 — contradiction engine: S4 ⇄ S5 conflict detected", ts: ts() });
+    for (const r of contradictionResolution.reasoning) {
+      seeded.push({ id: ++id, who: "DEFENSE", msg: r, ts: ts() });
+    }
+    seeded.push({ id: ++id, who: "SYSTEM", msg: "// SECTION 12 — constraint engine evaluation", ts: ts() });
+    for (const c of constraintTrace) {
+      seeded.push({ id: ++id, who: c.status === "SELECTED" ? "DEFENSE" : "ATTACK", msg: `${c.status} :: ${c.action} — ${c.reason}`, ts: ts() });
+    }
+    seeded.push({ id: ++id, who: "SYSTEM", msg: "Constraint solver selected: Partial Isolation Strategy. Handing off to engagement loop.", ts: ts() });
+    idRef.current = id;
+    setLines(seeded);
+  };
+
   const reset = () => {
-    setLines([]); setSurface(38); setPosture(86); setCounts({ detected: 0, mitigated: 0, mttr: 1.4 });
+    setSurface(38); setPosture(86); setCounts({ detected: 0, mitigated: 0, mttr: 1.4 });
     cursorRef.current = 0; idRef.current = 0;
     setSeries(Array.from({ length: 24 }, (_, i) => ({ t: i, surface: 38, posture: 86 })));
+    setLines([]);
+    // re-seed preamble
+    setTimeout(seed, 0);
   };
+
+  // seed once on mount
+  useEffect(() => { seed(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   useEffect(() => {
     if (!running) return;
