@@ -714,3 +714,16 @@ function Meter({ label, value, tone, hint }: { label: string; value: number; ton
     </div>
   );
 }
+
+function MiniDelta({ label, before, after, ready }: { label: string; before: string; after: string; ready: boolean }) {
+  return (
+    <div className={`rounded-md border px-3 py-2 ${ready ? "border-cyber-emerald/40 bg-cyber-emerald/5" : "border-border/60 bg-card/40"}`}>
+      <div className="text-[10px] tracking-widest text-muted-foreground font-display">{label.toUpperCase()}</div>
+      <div className="mt-1 flex items-center gap-2 text-[11px]">
+        <span className="text-cyber-red line-through">{before}</span>
+        <ArrowRight className="size-3 text-muted-foreground" />
+        <span className={ready ? "text-cyber-emerald font-display tracking-widest" : "text-muted-foreground"}>{after}</span>
+      </div>
+    </div>
+  );
+}
