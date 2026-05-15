@@ -44,6 +44,14 @@ function Conflict() {
   const [speed, setSpeed] = useState<Speed>("1x");
   const [counts, setCounts] = useState({ detected: 0, mitigated: 0, mttr: 1.4 });
 
+  // Section 10/11/14 state
+  type ChainStatus = "pending" | "running" | "ok" | "failed" | "recovered";
+  const [chainStatus, setChainStatus] = useState<ChainStatus[]>(() => actionChain.map(() => "pending"));
+  const [recoveryActive, setRecoveryActive] = useState(false);
+  const [recoveryIdx, setRecoveryIdx] = useState(0);
+  const [verdictIdx, setVerdictIdx] = useState(0);
+  const [outcomeReached, setOutcomeReached] = useState(false);
+
   const idRef = useRef(0);
   const cursorRef = useRef(0);
   const tRef = useRef(24);
