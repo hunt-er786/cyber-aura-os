@@ -84,12 +84,109 @@ function Conflict() {
     cursorRef.current = 0; idRef.current = 0;
     setSeries(Array.from({ length: 24 }, (_, i) => ({ t: i, surface: 38, posture: 86 })));
     setLines([]);
+    setChainStatus(actionChain.map(() => "pending"));
+    setRecoveryActive(false);
+    setRecoveryIdx(0);
+    setVerdictIdx(0);
+    setOutcomeReached(false);
     // re-seed preamble
     setTimeout(seed, 0);
   };
 
+  // helper to push a SYSTEM-style line
+  const pushLine = (who: Line["who"], msg: string) => {
+    idRef.current += 1;
+    const ts = new Date().toISOString().slice(11, 19);
+    const line: Line = { id: idRef.current, who, msg, ts };
+    setLines((l) => [...l, line].slice(-200));
+  };
+
   // seed once on mount
   useEffect(() => { seed(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  // Section 10/11 — sequential action chain orchestration
+  useEffect(() => {
+    if (!running) return;
+    const stepMs = SPEEDS[speed];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let t = 0;
+    const at = (ms: number, fn: () => void) => { timers.push(setTimeout(fn, ms)); };
+
+    // Verdict 1 — observation
+    at(t += stepMs * 0.4, () => { pushLine("DEFENSE", verdictTimeline[0]); setVerdictIdx(1); });
+    // Verdict 2 — analysis
+    at(t += stepMs * 1.0, () => { pushLine("DEFENSE", verdictTimeline[1]); setVerdictIdx(2); });
+    // Verdict 3 — contradiction
+    at(t += stepMs * 1.0, () => { pushLine("DEFENSE", verdictTimeline[2]); setVerdictIdx(3); });
+    // Verdict 4 — decision
+    at(t += stepMs * 1.0, () => { pushLine("DEFENSE", verdictTimeline[3]); setVerdictIdx(4); });
+
+    // Step 1
+    at(t += stepMs * 0.6, () => {
+      setChainStatus((s) => s.map((v, i) => i === 0 ? "running" : v));
+      pushLine("DEFENSE", `STEP 1 · ${actionChain[0].label} — ${actionChain[0].detail}`);
+    });
+    at(t += stepMs * 1.2, () => setChainStatus((s) => s.map((v, i) => i === 0 ? "ok" : v)));
+
+    // Step 2
+    at(t += stepMs * 0.4, () => {
+      setChainStatus((s) => s.map((v, i) => i === 1 ? "running" : v));
+      pushLine("DEFENSE", `STEP 2 · ${actionChain[1].label} — ${actionChain[1].detail}`);
+    });
+    at(t += stepMs * 1.2, () => setChainStatus((s) => s.map((v, i) => i === 1 ? "ok" : v)));
+
+    // Step 3 — execution + simulated failure
+    at(t += stepMs * 0.4, () => {
+      setChainStatus((s) => s.map((v, i) => i === 2 ? "running" : v));
+      pushLine("DEFENSE", verdictTimeline[4]); // [Execution Agent] Firewall rule deployed.
+      setVerdictIdx(5);
+      pushLine("DEFENSE", `STEP 3 · ${actionChain[2].label} — ${actionChain[2].detail}`);
+    });
+    at(t += stepMs * 1.4, () => {
+      setChainStatus((s) => s.map((v, i) => i === 2 ? "failed" : v));
+      pushLine("ATTACK", `STEP 3 FAILURE :: ${actionChain[2].failureMessage}`);
+      pushLine("DEFENSE", verdictTimeline[5]); // [Failure Recovery Agent] ...
+      setVerdictIdx(6);
+      setRecoveryActive(true);
+    });
+
+    // Recovery loop
+    recoverySteps.forEach((r, i) => {
+      at(t += stepMs * 0.7, () => {
+        setRecoveryIdx(i + 1);
+        pushLine("DEFENSE", `RECOVERY ${String(i + 1).padStart(2, "0")} :: ${r}`);
+      });
+    });
+    at(t += stepMs * 0.4, () => {
+      setChainStatus((s) => s.map((v, i) => i === 2 ? "recovered" : v));
+    });
+
+    // Step 4
+    at(t += stepMs * 0.5, () => {
+      setChainStatus((s) => s.map((v, i) => i === 3 ? "running" : v));
+      pushLine("DEFENSE", `STEP 4 · ${actionChain[3].label} — ${actionChain[3].detail}`);
+    });
+    at(t += stepMs * 1.0, () => setChainStatus((s) => s.map((v, i) => i === 3 ? "ok" : v)));
+
+    // Step 5
+    at(t += stepMs * 0.4, () => {
+      setChainStatus((s) => s.map((v, i) => i === 4 ? "running" : v));
+      pushLine("DEFENSE", `STEP 5 · ${actionChain[4].label} — ${actionChain[4].detail}`);
+    });
+    at(t += stepMs * 1.0, () => setChainStatus((s) => s.map((v, i) => i === 4 ? "ok" : v)));
+
+    // Outcome — triggers analytics binding
+    at(t += stepMs * 0.6, () => {
+      pushLine("SYSTEM", verdictTimeline[6]); // [Outcome Agent] ...
+      setVerdictIdx(7);
+      setOutcomeReached(true);
+    });
+
+    return () => { timers.forEach(clearTimeout); };
+    // re-run on reset (keyed by chainStatus all-pending) and speed change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, speed, chainStatus.every((s) => s === "pending")]);
+
 
   useEffect(() => {
     if (!running) return;
