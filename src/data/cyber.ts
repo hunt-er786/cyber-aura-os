@@ -46,6 +46,64 @@ export const constraintTrace = [
   { action: "Partial Isolation Strategy",      status: "SELECTED", reason: "Quarantines 14 affected endpoints · preserves 99.9% of operational capacity" },
 ] as const;
 
+// Section 10 — Sequential Action Chain (5 steps; step 3 simulates a failure)
+export type ChainStep = {
+  id: number;
+  label: string;
+  detail: string;
+  failOnRun?: boolean;
+  failureMessage?: string;
+};
+export const actionChain: ChainStep[] = [
+  { id: 1, label: "Isolate Endpoints",      detail: "Quarantine 14 compromised endpoints from production VLAN" },
+  { id: 2, label: "Block Malicious IPs",    detail: "Push 47 IOCs to perimeter blocklist · upstream ASN filter" },
+  { id: 3, label: "Push Firewall Update",   detail: "Deploy ruleset v4.21 to edge cluster", failOnRun: true, failureMessage: "Primary Firewall API Timeout (HTTP 504 after 30s)" },
+  { id: 4, label: "Notify SOC / Admin",     detail: "Page on-call · open incident INC-44219 · Slack #soc-war-room" },
+  { id: 5, label: "Continuous Monitoring",  detail: "Watchpoints armed · 1m heartbeat · drift alarm enabled" },
+];
+
+// Section 11 — Failure Recovery sub-actions
+export const recoverySteps = [
+  "Detected timeout on primary firewall API endpoint",
+  "Retry 1/3 · backoff 2s",
+  "Retry 2/3 · backoff 4s",
+  "Retry 3/3 · backoff 8s — primary still unresponsive",
+  "Failover engaged · applying backup containment rule on secondary cluster",
+  "Escalating alert to SOC Tier-2 (severity P1) · paging incident commander",
+  "Containment confirmed via secondary path · resuming chain",
+] as const;
+
+// Section 10/11 — Verbatim verdict log (printed sequentially)
+export const verdictTimeline = [
+  "[Observation Agent] Suspicious outbound traffic detected.",
+  "[Threat Analysis Agent] Pattern matches known ransomware behavior.",
+  "[Contradiction Agent] SOC report outdated by 47 minutes.",
+  "[Decision Agent] Threat severity upgraded to CRITICAL.",
+  "[Execution Agent] Firewall rule deployed.",
+  "[Failure Recovery Agent] Primary API timeout detected. Applying fallback containment rule.",
+  "[Outcome Agent] Threat propagation reduced by 73%.",
+] as const;
+
+// Section 14 — Before vs After analytics
+export const analyticsBeforeAfter = {
+  spread: [
+    { t: "T-5m", before: 12, after: 12 },
+    { t: "T-4m", before: 28, after: 28 },
+    { t: "T-3m", before: 47, after: 47 },
+    { t: "T-2m", before: 71, after: 64 },
+    { t: "T-1m", before: 88, after: 38 },
+    { t: "T-0",  before: 96, after: 14 },
+    { t: "T+1m", before: 99, after: 6  },
+    { t: "T+2m", before: 99, after: 3  },
+  ],
+  risk: [
+    { name: "Exposure",     before: 92, after: 18 },
+    { name: "Blast Radius", before: 88, after: 12 },
+    { name: "Dwell Time",   before: 74, after: 9  },
+    { name: "Data at Risk", before: 81, after: 14 },
+  ],
+};
+
 export const conflictScript = [
   { who: "ATTACK",  msg: "Generating semantic phishing payload v4.2..." },
   { who: "ATTACK",  msg: "Mutating linguistic signatures to bypass NLP filters." },
