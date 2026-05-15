@@ -1,0 +1,11 @@
+{
+  "workspace_id": "ws_cyber_shield_021",
+  "orchestration_mode": "AUTONOMOUS_GRAPH",
+  "global_context": {
+    "target_region": "Karachi, Pakistan",
+    "base_state": "VULNERABLE",
+    "system_constraints": {
+      "critical_risk_threshold": 85.0
+    }
+  }
+}
