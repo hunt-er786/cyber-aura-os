@@ -450,6 +450,163 @@ function Conflict() {
           </Panel>
         </div>
 
+        {/* Section 10 — Sequential Action Chain */}
+        <Panel
+          title="SEQUENTIAL ACTION CHAIN"
+          subtitle="execution pipeline · 5 steps"
+          right={<ArrowRight className="size-4 text-cyber-cyan" />}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+            {actionChain.map((step, i) => {
+              const status = chainStatus[i];
+              const tone =
+                status === "ok" || status === "recovered" ? "border-cyber-emerald/50 bg-cyber-emerald/5" :
+                status === "running" ? "border-cyber-cyan/60 bg-cyber-cyan/10" :
+                status === "failed" ? "border-cyber-red/60 bg-cyber-red/10" :
+                "border-border/60 bg-card/40";
+              return (
+                <div key={step.id} className={`relative rounded-md border p-3 ${tone}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-display tracking-widest text-muted-foreground">STEP {step.id}</span>
+                    {status === "running" && <Loader2 className="size-3.5 text-cyber-cyan animate-spin" />}
+                    {status === "ok" && <CheckCircle2 className="size-3.5 text-cyber-emerald" />}
+                    {status === "recovered" && <CheckCircle2 className="size-3.5 text-cyber-emerald" />}
+                    {status === "failed" && <XCircle className="size-3.5 text-cyber-red" />}
+                    {status === "pending" && <span className="size-2 rounded-full bg-muted-foreground/40" />}
+                  </div>
+                  <div className="mt-1 text-xs font-mono text-foreground">{step.label}</div>
+                  <div className="mt-1 text-[10px] font-mono text-muted-foreground leading-snug">{step.detail}</div>
+                  {status === "failed" && (
+                    <div className="mt-2 text-[10px] font-mono text-cyber-red leading-snug">{step.failureMessage}</div>
+                  )}
+                  {status === "recovered" && (
+                    <div className="mt-2 text-[10px] font-mono text-cyber-emerald leading-snug">recovered via fallback</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+
+        {/* Section 11 — Failure Recovery Agent */}
+        <AnimatePresence>
+          {recoveryActive && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <Panel
+                title="FAILURE RECOVERY AGENT"
+                subtitle="automated retry · backup containment · escalation"
+                tone="red"
+                right={
+                  <span className="inline-flex items-center gap-1.5 text-[10px] tracking-widest text-cyber-red">
+                    <ShieldAlert className="size-3.5" />
+                    {chainStatus[2] === "recovered" ? "CONTAINED" : "ACTIVE"}
+                  </span>
+                }
+              >
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="rounded-md border border-cyber-red/40 bg-cyber-red/5 p-3">
+                    <div className="text-[10px] tracking-widest text-cyber-red font-display">RETRY LOOP</div>
+                    <div className="mt-2 flex items-center gap-2">
+                      {chainStatus[2] !== "recovered" && <Loader2 className="size-4 text-cyber-red animate-spin" />}
+                      <span className="font-display text-2xl text-foreground tabular-nums">{Math.min(recoveryIdx, 4)}/3</span>
+                    </div>
+                    <div className="mt-1 text-[10px] font-mono text-muted-foreground">exponential backoff · 2s → 8s</div>
+                  </div>
+                  <div className="rounded-md border border-cyber-amber/40 bg-cyber-amber/5 p-3">
+                    <div className="text-[10px] tracking-widest text-cyber-amber font-display">BACKUP CONTAINMENT</div>
+                    <div className="mt-2 text-xs font-mono text-foreground">Secondary firewall cluster · ruleset v4.21-bk</div>
+                    <div className="mt-1 text-[10px] font-mono text-muted-foreground">applied to perimeter zone EDGE-2</div>
+                  </div>
+                  <div className="rounded-md border border-cyber-red/40 bg-cyber-red/5 p-3">
+                    <div className="text-[10px] tracking-widest text-cyber-red font-display">ESCALATION</div>
+                    <div className="mt-2 text-xs font-mono text-foreground">SOC Tier-2 paged · INC-44219</div>
+                    <div className="mt-1 text-[10px] font-mono text-muted-foreground">severity P1 · incident commander notified</div>
+                  </div>
+                </div>
+                <ol className="mt-3 space-y-1 text-[11px] font-mono leading-5">
+                  {recoverySteps.slice(0, recoveryIdx).map((r, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-muted-foreground tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="text-foreground/90">{r}</span>
+                    </li>
+                  ))}
+                </ol>
+              </Panel>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Section 14 — Before vs After analytics */}
+        <Panel
+          title="BEFORE vs AFTER · OUTCOME ANALYTICS"
+          subtitle={outcomeReached ? "bound to [Outcome Agent] verdict — propagation reduced 73%" : "awaiting [Outcome Agent] verdict..."}
+          tone={outcomeReached ? "emerald" : "cyan"}
+          right={<BarChart3 className="size-4 text-cyber-cyan" />}
+        >
+          <div className="grid lg:grid-cols-2 gap-4">
+            <div>
+              <div className="text-[10px] tracking-widest text-muted-foreground font-display mb-2">THREAT SPREAD OVER TIME</div>
+              <div className="h-56">
+                <ResponsiveContainer>
+                  <AreaChart data={analyticsBeforeAfter.spread}>
+                    <defs>
+                      <linearGradient id="ba-before" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="oklch(0.65 0.26 25)" stopOpacity={0.55} />
+                        <stop offset="100%" stopColor="oklch(0.65 0.26 25)" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="ba-after" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="oklch(0.78 0.18 155)" stopOpacity={0.55} />
+                        <stop offset="100%" stopColor="oklch(0.78 0.18 155)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="oklch(0.85 0.18 200 / 0.08)" />
+                    <XAxis dataKey="t" tick={{ fill: "oklch(0.68 0.04 220)", fontSize: 10 }} />
+                    <YAxis domain={[0, 100]} tick={{ fill: "oklch(0.68 0.04 220)", fontSize: 10 }} />
+                    <Tooltip contentStyle={{ background: "oklch(0.18 0.04 250)", border: "1px solid oklch(0.85 0.18 200 / 0.4)", fontSize: 11 }} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                    <Area type="monotone" dataKey="before" name="Before · uncontained"
+                      stroke="oklch(0.65 0.26 25)" strokeWidth={2} fill="url(#ba-before)"
+                      isAnimationActive animationDuration={900} />
+                    <Area type="monotone" dataKey={outcomeReached ? "after" : "before"} name="After · contained"
+                      stroke="oklch(0.78 0.18 155)" strokeWidth={2} fill="url(#ba-after)"
+                      isAnimationActive animationDuration={1100} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] tracking-widest text-muted-foreground font-display mb-2">RISK PROFILE · NORMALIZED</div>
+              <div className="h-56">
+                <ResponsiveContainer>
+                  <BarChart data={analyticsBeforeAfter.risk}>
+                    <CartesianGrid stroke="oklch(0.85 0.18 200 / 0.08)" />
+                    <XAxis dataKey="name" tick={{ fill: "oklch(0.68 0.04 220)", fontSize: 10 }} />
+                    <YAxis domain={[0, 100]} tick={{ fill: "oklch(0.68 0.04 220)", fontSize: 10 }} />
+                    <Tooltip contentStyle={{ background: "oklch(0.18 0.04 250)", border: "1px solid oklch(0.85 0.18 200 / 0.4)", fontSize: 11 }} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                    <Bar dataKey="before" name="Before" fill="oklch(0.65 0.26 25)" radius={[3, 3, 0, 0]} isAnimationActive animationDuration={800} />
+                    <Bar dataKey={outcomeReached ? "after" : "before"} name="After" fill="oklch(0.78 0.18 155)" radius={[3, 3, 0, 0]} isAnimationActive animationDuration={1100} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] font-mono">
+            <MiniDelta label="Propagation" before="96%" after={outcomeReached ? "23%" : "—"} ready={outcomeReached} />
+            <MiniDelta label="Exposure"    before="92%" after={outcomeReached ? "18%" : "—"} ready={outcomeReached} />
+            <MiniDelta label="Dwell Time"  before="74m" after={outcomeReached ? "9m"  : "—"} ready={outcomeReached} />
+            <MiniDelta label="Risk Score"  before="HIGH" after={outcomeReached ? "NOMINAL" : "—"} ready={outcomeReached} />
+          </div>
+          <div className="mt-3 text-[11px] font-mono">
+            <span className="text-muted-foreground">Verdict log progress · </span>
+            <span className="text-cyber-cyan">{verdictIdx}/7</span>
+          </div>
+        </Panel>
+
         <Panel
           title="ENGAGEMENT TELEMETRY"
           subtitle="time-correlated event stream"
