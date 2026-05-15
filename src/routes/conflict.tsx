@@ -1,15 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
-import { conflictScript, ingestionSources, contradictionResolution, constraintTrace } from "@/data/cyber";
+import {
+  conflictScript, ingestionSources, contradictionResolution, constraintTrace,
+  actionChain, recoverySteps, verdictTimeline, analyticsBeforeAfter,
+} from "@/data/cyber";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Skull, Shield, Cpu, Play, Pause, RotateCcw, FastForward,
-  TrendingUp, TrendingDown, Activity, Target, Database, GitMerge, Gavel, CheckCircle2, XCircle, AlertTriangle,
+  TrendingUp, TrendingDown, Activity, Target, Database, GitMerge, Gavel,
+  CheckCircle2, XCircle, AlertTriangle, Loader2, ShieldAlert, BarChart3, ArrowRight,
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
+  BarChart, Bar, Legend,
 } from "recharts";
 
 export const Route = createFileRoute("/conflict")({
