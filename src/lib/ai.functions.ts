@@ -20,9 +20,10 @@ async function callAI(messages: Array<{ role: "system" | "user" | "assistant"; c
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    console.error(`[AI gateway] status=${res.status} body=${text.slice(0, 1000)}`);
     if (res.status === 429) throw new Error("Rate limit exceeded — try again in a moment.");
     if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
-    throw new Error(`AI gateway error ${res.status}: ${text.slice(0, 200)}`);
+    throw new Error("AI service temporarily unavailable. Please try again.");
   }
   const data = await res.json();
   return (data?.choices?.[0]?.message?.content as string) ?? "";
