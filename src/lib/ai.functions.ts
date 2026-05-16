@@ -6,7 +6,10 @@ const MODEL = "google/gemini-3-flash-preview";
 
 async function callAI(messages: Array<{ role: "system" | "user" | "assistant"; content: string }>) {
   const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+  if (!key) {
+    console.error("[AI] LOVABLE_API_KEY is not configured");
+    throw new Error("AI service is not available.");
+  }
 
   const res = await fetch(GATEWAY, {
     method: "POST",
