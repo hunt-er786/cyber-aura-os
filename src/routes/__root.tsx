@@ -1,22 +1,16 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
-  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 import { DemoController } from "@/components/demo/DemoController";
 import { Copilot } from "@/components/ai/Copilot";
-import { supabase } from "@/integrations/supabase/client";
-
-const PUBLIC_PATHS = new Set(["/", "/login"]);
 
 function NotFoundComponent() {
   return (
@@ -118,58 +112,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AuthGate({ children }: { children: React.ReactNode }) {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [authed, setAuthed] = useState<boolean | null>(null);
-  const isPublic = PUBLIC_PATHS.has(path);
-
-  useEffect(() => {
-    let cancelled = false;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled) setAuthed(!!data.session);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setAuthed(!!session);
-      queryClient.invalidateQueries();
-    });
-    return () => {
-      cancelled = true;
-      sub.subscription.unsubscribe();
-    };
-  }, [queryClient]);
-
-  useEffect(() => {
-    if (authed === false && !isPublic) navigate({ to: "/login" });
-  }, [authed, isPublic, navigate]);
-
-  if (!isPublic && authed !== true) {
-    // Block rendering of protected routes until session is known/authenticated
-    if (authed === false) return null;
-    return (
-      <div className="min-h-screen grid place-items-center text-xs font-mono text-muted-foreground tracking-widest">
-        VERIFYING CLEARANCE…
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {children}
-      {authed === true && <Copilot />}
-    </>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGate>
-        <Outlet />
-      </AuthGate>
+      <Outlet />
+      <Copilot />
       <DemoController />
     </QueryClientProvider>
   );
