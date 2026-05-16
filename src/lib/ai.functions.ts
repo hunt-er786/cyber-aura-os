@@ -96,6 +96,7 @@ export const analyzeThreat = createServerFn({ method: "POST" })
     try {
       return { analysis: JSON.parse(clean) };
     } catch {
+      console.error(`[analyzeThreat] non-JSON model output: ${raw.slice(0, 1000)}`);
       return {
         analysis: {
           verdict: "SUSPICIOUS",
@@ -105,7 +106,6 @@ export const analyzeThreat = createServerFn({ method: "POST" })
           recommended_actions: ["Quarantine source", "Escalate to SOC"],
           escalation_probability: 0.5,
           predicted_next_step: "Lateral movement attempt likely.",
-          raw,
         },
       };
     }
