@@ -1,16 +1,22 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 import { DemoController } from "@/components/demo/DemoController";
 import { Copilot } from "@/components/ai/Copilot";
+import { supabase } from "@/integrations/supabase/client";
+
+const PUBLIC_PATHS = new Set(["/", "/login"]);
 
 function NotFoundComponent() {
   return (
