@@ -33,10 +33,27 @@ function genSeries(n = 24, base = 40) {
 function Dashboard() {
   const [series, setSeries] = useState(() => genSeries());
   const [counts, setCounts] = useState({ blocked: 14221, conf: 98.7, integ: 99.4, scans: 421 });
-  const [simData, setSimData] = useState<{ neural: number | null; crypto: number | null }>({ neural: null, crypto: null });
+  const [simData, setSimData] = useState<{
+    neural: number | null;
+    crypto: number | null;
+    before: Record<string, number | string> | null;
+    after: Record<string, number | string> | null;
+  }>({ neural: null, crypto: null, before: null, after: null });
   const [logs, setLogs] = useState<string[]>([]);
   const [simLoading, setSimLoading] = useState(false);
   const [simError, setSimError] = useState<string | null>(null);
+
+  const coerceMetrics = (obj: unknown): Record<string, number | string> | null => {
+    if (!obj || typeof obj !== "object") return null;
+    const out: Record<string, number | string> = {};
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      const key = String(k).slice(0, 64);
+      if (typeof v === "number" && Number.isFinite(v)) out[key] = v;
+      else if (typeof v === "string") out[key] = v.slice(0, 200);
+      else if (typeof v === "boolean") out[key] = String(v);
+    }
+    return Object.keys(out).length ? out : null;
+  };
 
   const enterSimulation = async () => {
     setSimLoading(true);
@@ -51,13 +68,20 @@ function Dashboard() {
       clearTimeout(timeout);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const neural = typeof data?.neural === "number" ? data.neural : Number(data?.neural);
-      const crypto = typeof data?.crypto === "number" ? data.crypto : Number(data?.crypto);
-      setSimData({
-        neural: Number.isFinite(neural) ? neural : null,
-        crypto: Number.isFinite(crypto) ? crypto : null,
-      });
-      const rawLogs: unknown = data?.logs ?? data?.trace ?? data?.agent_logs ?? [];
+
+      const pctRaw = data?.calculated_percentage;
+      const pct = typeof pctRaw === "number" ? pctRaw : Number(pctRaw);
+      const metric = String(data?.metric ?? "").toLowerCase();
+      const target: "neural" | "crypto" = metric === "crypto" ? "crypto" : "neural";
+
+      setSimData((prev) => ({
+        ...prev,
+        [target]: Number.isFinite(pct) ? pct : prev[target],
+        before: coerceMetrics(data?.before) ?? prev.before,
+        after: coerceMetrics(data?.after) ?? prev.after,
+      }));
+
+      const rawLogs: unknown = data?.logs ?? [];
       const arr = Array.isArray(rawLogs) ? rawLogs : [String(rawLogs)];
       setLogs(arr.slice(0, 500).map((l) => String(l).slice(0, 2000)));
     } catch (e) {
@@ -152,6 +176,17 @@ function Dashboard() {
             )}
           </div>
         </Panel>
+
+        {(simData.before || simData.after) && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <Panel title="BEFORE · SECURITY STATE" subtitle="pre-simulation baseline" tone="amber">
+              <BeforeAfterTable data={simData.before} compareTo={simData.after} side="before" />
+            </Panel>
+            <Panel title="AFTER · SECURITY STATE" subtitle="post-remediation snapshot" tone="emerald">
+              <BeforeAfterTable data={simData.after} compareTo={simData.before} side="after" />
+            </Panel>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
@@ -267,5 +302,41 @@ function RiskGauge({ value }: { value: number }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function BeforeAfterTable({
+  data,
+  compareTo,
+  side,
+}: {
+  data: Record<string, number | string> | null;
+  compareTo: Record<string, number | string> | null;
+  side: "before" | "after";
+}) {
+  if (!data) {
+    return <div className="text-[11px] font-mono text-muted-foreground">// no data</div>;
+  }
+  return (
+    <ul className="space-y-1.5 text-[11px] font-mono">
+      {Object.entries(data).map(([k, v]) => {
+        const other = compareTo?.[k];
+        const isNum = typeof v === "number" && typeof other === "number";
+        const delta = isNum ? (v as number) - (other as number) : 0;
+        const trend = !isNum
+          ? ""
+          : side === "after" && delta > 0
+            ? "text-cyber-emerald"
+            : side === "after" && delta < 0
+              ? "text-cyber-red"
+              : "text-muted-foreground";
+        return (
+          <li key={k} className="flex items-center justify-between gap-3 border-b border-border/40 pb-1">
+            <span className="text-muted-foreground truncate">{k}</span>
+            <span className={`tabular-nums ${trend}`}>{String(v)}</span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
