@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
 import { Stat } from "@/components/cyber/Stat";
 import { RadarScanner } from "@/components/cyber/RadarScanner";
-import { Activity, Shield, AlertTriangle, Brain, Zap, Network, Play, Terminal, Bitcoin } from "lucide-react";
+import { Activity, Shield, AlertTriangle, Brain, Zap, Play, Terminal, Bitcoin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line,
