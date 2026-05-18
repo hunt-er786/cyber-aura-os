@@ -96,18 +96,62 @@ function Dashboard() {
             <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// COMMAND CENTER</div>
             <h1 className="mt-1 font-display text-3xl md:text-4xl">Executive Defense Overview</h1>
           </div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
-            <span className="size-2 rounded-full bg-cyber-emerald animate-pulse" />
-            REAL-TIME STREAM · 1.2s LATENCY
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+              <span className="size-2 rounded-full bg-cyber-emerald animate-pulse" />
+              REAL-TIME STREAM · 1.2s LATENCY
+            </div>
+            <Button
+              onClick={enterSimulation}
+              disabled={simLoading}
+              size="sm"
+              className="font-display tracking-[0.2em] text-[11px]"
+            >
+              <Play className="size-3" />
+              {simLoading ? "RUNNING…" : "ENTER SIMULATION"}
+            </Button>
           </div>
         </div>
 
+        {simError && (
+          <div className="text-[11px] font-mono text-cyber-red border border-cyber-red/40 rounded-md px-3 py-2">
+            SIMULATION ERROR · {simError}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Stat label="Threats Blocked" value={counts.blocked.toLocaleString()} delta="+ 7.1% past hour" tone="emerald" icon={<Shield className="size-4" />} />
-          <Stat label="AI Confidence" value={`${counts.conf.toFixed(1)}%`} delta="model drift nominal" tone="cyan" icon={<Brain className="size-4" />} />
-          <Stat label="Network Integrity" value={`${counts.integ.toFixed(1)}%`} delta="14,221 nodes online" tone="cyan" icon={<Network className="size-4" />} />
+          <Stat
+            label="Neural"
+            value={simData.neural !== null ? `${simData.neural.toFixed(1)}%` : `${counts.conf.toFixed(1)}%`}
+            delta={simData.neural !== null ? "sim · live feed" : "model drift nominal"}
+            tone="cyan"
+            icon={<Brain className="size-4" />}
+          />
+          <Stat
+            label="Crypto"
+            value={simData.crypto !== null ? `${simData.crypto.toFixed(1)}%` : `${counts.integ.toFixed(1)}%`}
+            delta={simData.crypto !== null ? "sim · ledger sync" : "14,221 nodes online"}
+            tone="emerald"
+            icon={<Bitcoin className="size-4" />}
+          />
           <Stat label="Active Scans" value={counts.scans} delta="auto-rotating" tone="amber" icon={<Activity className="size-4" />} />
         </div>
+
+        <Panel title="AGENT TRACE LOG" subtitle="simulation terminal output" tone="emerald" right={<Terminal className="size-4 text-cyber-emerald" />}>
+          <div className="h-48 overflow-auto rounded bg-black/60 border border-cyber-emerald/20 p-3 font-mono text-[11px] leading-relaxed text-cyber-emerald whitespace-pre-wrap break-words">
+            {logs.length === 0 ? (
+              <span className="text-muted-foreground">// awaiting simulation trace…</span>
+            ) : (
+              logs.map((line, i) => (
+                <div key={i}>
+                  <span className="text-muted-foreground mr-2">{String(i + 1).padStart(3, "0")}</span>
+                  {line}
+                </div>
+              ))
+            )}
+          </div>
+        </Panel>
 
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
