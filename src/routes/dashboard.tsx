@@ -177,6 +177,17 @@ function Dashboard() {
           </div>
         </Panel>
 
+        {(simData.before || simData.after) && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <Panel title="BEFORE · SECURITY STATE" subtitle="pre-simulation baseline" tone="amber">
+              <BeforeAfterTable data={simData.before} compareTo={simData.after} side="before" />
+            </Panel>
+            <Panel title="AFTER · SECURITY STATE" subtitle="post-remediation snapshot" tone="emerald">
+              <BeforeAfterTable data={simData.after} compareTo={simData.before} side="after" />
+            </Panel>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
             <div className="h-64">
