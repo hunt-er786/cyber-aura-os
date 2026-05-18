@@ -3,7 +3,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
 import { Stat } from "@/components/cyber/Stat";
 import { RadarScanner } from "@/components/cyber/RadarScanner";
-import { Activity, Shield, AlertTriangle, Brain, Zap, Network } from "lucide-react";
+import { Activity, Shield, AlertTriangle, Brain, Zap, Play, Terminal, Bitcoin } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line,
 } from "recharts";
@@ -32,6 +33,39 @@ function genSeries(n = 24, base = 40) {
 function Dashboard() {
   const [series, setSeries] = useState(() => genSeries());
   const [counts, setCounts] = useState({ blocked: 14221, conf: 98.7, integ: 99.4, scans: 421 });
+  const [simData, setSimData] = useState<{ neural: number | null; crypto: number | null }>({ neural: null, crypto: null });
+  const [logs, setLogs] = useState<string[]>([]);
+  const [simLoading, setSimLoading] = useState(false);
+  const [simError, setSimError] = useState<string | null>(null);
+
+  const enterSimulation = async () => {
+    setSimLoading(true);
+    setSimError(null);
+    try {
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 15000);
+      const res = await fetch(
+        "https://5000-cs-29459fb4-72a4-4d31-81ab-a556a09fa236.cs-asia-southeast1-yelo.cloudshell.dev/api/state",
+        { signal: ctrl.signal, headers: { Accept: "application/json" } },
+      );
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const neural = typeof data?.neural === "number" ? data.neural : Number(data?.neural);
+      const crypto = typeof data?.crypto === "number" ? data.crypto : Number(data?.crypto);
+      setSimData({
+        neural: Number.isFinite(neural) ? neural : null,
+        crypto: Number.isFinite(crypto) ? crypto : null,
+      });
+      const rawLogs: unknown = data?.logs ?? data?.trace ?? data?.agent_logs ?? [];
+      const arr = Array.isArray(rawLogs) ? rawLogs : [String(rawLogs)];
+      setLogs(arr.slice(0, 500).map((l) => String(l).slice(0, 2000)));
+    } catch (e) {
+      setSimError(e instanceof Error ? e.message : "Simulation request failed");
+    } finally {
+      setSimLoading(false);
+    }
+  };
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -62,18 +96,62 @@ function Dashboard() {
             <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// COMMAND CENTER</div>
             <h1 className="mt-1 font-display text-3xl md:text-4xl">Executive Defense Overview</h1>
           </div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
-            <span className="size-2 rounded-full bg-cyber-emerald animate-pulse" />
-            REAL-TIME STREAM · 1.2s LATENCY
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+              <span className="size-2 rounded-full bg-cyber-emerald animate-pulse" />
+              REAL-TIME STREAM · 1.2s LATENCY
+            </div>
+            <Button
+              onClick={enterSimulation}
+              disabled={simLoading}
+              size="sm"
+              className="font-display tracking-[0.2em] text-[11px]"
+            >
+              <Play className="size-3" />
+              {simLoading ? "RUNNING…" : "ENTER SIMULATION"}
+            </Button>
           </div>
         </div>
 
+        {simError && (
+          <div className="text-[11px] font-mono text-cyber-red border border-cyber-red/40 rounded-md px-3 py-2">
+            SIMULATION ERROR · {simError}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Stat label="Threats Blocked" value={counts.blocked.toLocaleString()} delta="+ 7.1% past hour" tone="emerald" icon={<Shield className="size-4" />} />
-          <Stat label="AI Confidence" value={`${counts.conf.toFixed(1)}%`} delta="model drift nominal" tone="cyan" icon={<Brain className="size-4" />} />
-          <Stat label="Network Integrity" value={`${counts.integ.toFixed(1)}%`} delta="14,221 nodes online" tone="cyan" icon={<Network className="size-4" />} />
+          <Stat
+            label="Neural"
+            value={simData.neural !== null ? `${simData.neural.toFixed(1)}%` : `${counts.conf.toFixed(1)}%`}
+            delta={simData.neural !== null ? "sim · live feed" : "model drift nominal"}
+            tone="cyan"
+            icon={<Brain className="size-4" />}
+          />
+          <Stat
+            label="Crypto"
+            value={simData.crypto !== null ? `${simData.crypto.toFixed(1)}%` : `${counts.integ.toFixed(1)}%`}
+            delta={simData.crypto !== null ? "sim · ledger sync" : "14,221 nodes online"}
+            tone="emerald"
+            icon={<Bitcoin className="size-4" />}
+          />
           <Stat label="Active Scans" value={counts.scans} delta="auto-rotating" tone="amber" icon={<Activity className="size-4" />} />
         </div>
+
+        <Panel title="AGENT TRACE LOG" subtitle="simulation terminal output" tone="emerald" right={<Terminal className="size-4 text-cyber-emerald" />}>
+          <div className="h-48 overflow-auto rounded bg-black/60 border border-cyber-emerald/20 p-3 font-mono text-[11px] leading-relaxed text-cyber-emerald whitespace-pre-wrap break-words">
+            {logs.length === 0 ? (
+              <span className="text-muted-foreground">// awaiting simulation trace…</span>
+            ) : (
+              logs.map((line, i) => (
+                <div key={i}>
+                  <span className="text-muted-foreground mr-2">{String(i + 1).padStart(3, "0")}</span>
+                  {line}
+                </div>
+              ))
+            )}
+          </div>
+        </Panel>
 
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
