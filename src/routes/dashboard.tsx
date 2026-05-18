@@ -304,3 +304,39 @@ function RiskGauge({ value }: { value: number }) {
     </div>
   );
 }
+
+function BeforeAfterTable({
+  data,
+  compareTo,
+  side,
+}: {
+  data: Record<string, number | string> | null;
+  compareTo: Record<string, number | string> | null;
+  side: "before" | "after";
+}) {
+  if (!data) {
+    return <div className="text-[11px] font-mono text-muted-foreground">// no data</div>;
+  }
+  return (
+    <ul className="space-y-1.5 text-[11px] font-mono">
+      {Object.entries(data).map(([k, v]) => {
+        const other = compareTo?.[k];
+        const isNum = typeof v === "number" && typeof other === "number";
+        const delta = isNum ? (v as number) - (other as number) : 0;
+        const trend = !isNum
+          ? ""
+          : side === "after" && delta > 0
+            ? "text-cyber-emerald"
+            : side === "after" && delta < 0
+              ? "text-cyber-red"
+              : "text-muted-foreground";
+        return (
+          <li key={k} className="flex items-center justify-between gap-3 border-b border-border/40 pb-1">
+            <span className="text-muted-foreground truncate">{k}</span>
+            <span className={`tabular-nums ${trend}`}>{String(v)}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
