@@ -33,10 +33,27 @@ function genSeries(n = 24, base = 40) {
 function Dashboard() {
   const [series, setSeries] = useState(() => genSeries());
   const [counts, setCounts] = useState({ blocked: 14221, conf: 98.7, integ: 99.4, scans: 421 });
-  const [simData, setSimData] = useState<{ neural: number | null; crypto: number | null }>({ neural: null, crypto: null });
+  const [simData, setSimData] = useState<{
+    neural: number | null;
+    crypto: number | null;
+    before: Record<string, number | string> | null;
+    after: Record<string, number | string> | null;
+  }>({ neural: null, crypto: null, before: null, after: null });
   const [logs, setLogs] = useState<string[]>([]);
   const [simLoading, setSimLoading] = useState(false);
   const [simError, setSimError] = useState<string | null>(null);
+
+  const coerceMetrics = (obj: unknown): Record<string, number | string> | null => {
+    if (!obj || typeof obj !== "object") return null;
+    const out: Record<string, number | string> = {};
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      const key = String(k).slice(0, 64);
+      if (typeof v === "number" && Number.isFinite(v)) out[key] = v;
+      else if (typeof v === "string") out[key] = v.slice(0, 200);
+      else if (typeof v === "boolean") out[key] = String(v);
+    }
+    return Object.keys(out).length ? out : null;
+  };
 
   const enterSimulation = async () => {
     setSimLoading(true);
@@ -51,13 +68,20 @@ function Dashboard() {
       clearTimeout(timeout);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const neural = typeof data?.neural === "number" ? data.neural : Number(data?.neural);
-      const crypto = typeof data?.crypto === "number" ? data.crypto : Number(data?.crypto);
-      setSimData({
-        neural: Number.isFinite(neural) ? neural : null,
-        crypto: Number.isFinite(crypto) ? crypto : null,
-      });
-      const rawLogs: unknown = data?.logs ?? data?.trace ?? data?.agent_logs ?? [];
+
+      const pctRaw = data?.calculated_percentage;
+      const pct = typeof pctRaw === "number" ? pctRaw : Number(pctRaw);
+      const metric = String(data?.metric ?? "").toLowerCase();
+      const target: "neural" | "crypto" = metric === "crypto" ? "crypto" : "neural";
+
+      setSimData((prev) => ({
+        ...prev,
+        [target]: Number.isFinite(pct) ? pct : prev[target],
+        before: coerceMetrics(data?.before) ?? prev.before,
+        after: coerceMetrics(data?.after) ?? prev.after,
+      }));
+
+      const rawLogs: unknown = data?.logs ?? [];
       const arr = Array.isArray(rawLogs) ? rawLogs : [String(rawLogs)];
       setLogs(arr.slice(0, 500).map((l) => String(l).slice(0, 2000)));
     } catch (e) {
