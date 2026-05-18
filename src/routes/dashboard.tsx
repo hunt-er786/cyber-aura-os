@@ -33,6 +33,39 @@ function genSeries(n = 24, base = 40) {
 function Dashboard() {
   const [series, setSeries] = useState(() => genSeries());
   const [counts, setCounts] = useState({ blocked: 14221, conf: 98.7, integ: 99.4, scans: 421 });
+  const [simData, setSimData] = useState<{ neural: number | null; crypto: number | null }>({ neural: null, crypto: null });
+  const [logs, setLogs] = useState<string[]>([]);
+  const [simLoading, setSimLoading] = useState(false);
+  const [simError, setSimError] = useState<string | null>(null);
+
+  const enterSimulation = async () => {
+    setSimLoading(true);
+    setSimError(null);
+    try {
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 15000);
+      const res = await fetch(
+        "https://5000-cs-29459fb4-72a4-4d31-81ab-a556a09fa236.cs-asia-southeast1-yelo.cloudshell.dev/api/state",
+        { signal: ctrl.signal, headers: { Accept: "application/json" } },
+      );
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const neural = typeof data?.neural === "number" ? data.neural : Number(data?.neural);
+      const crypto = typeof data?.crypto === "number" ? data.crypto : Number(data?.crypto);
+      setSimData({
+        neural: Number.isFinite(neural) ? neural : null,
+        crypto: Number.isFinite(crypto) ? crypto : null,
+      });
+      const rawLogs: unknown = data?.logs ?? data?.trace ?? data?.agent_logs ?? [];
+      const arr = Array.isArray(rawLogs) ? rawLogs : [String(rawLogs)];
+      setLogs(arr.slice(0, 500).map((l) => String(l).slice(0, 2000)));
+    } catch (e) {
+      setSimError(e instanceof Error ? e.message : "Simulation request failed");
+    } finally {
+      setSimLoading(false);
+    }
+  };
 
   useEffect(() => {
     const id = setInterval(() => {
