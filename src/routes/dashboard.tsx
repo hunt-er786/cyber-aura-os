@@ -62,7 +62,7 @@ function Dashboard() {
       const ctrl = new AbortController();
       const timeout = setTimeout(() => ctrl.abort(), 15000);
       const res = await fetch(
-        "https://5000-cs-29459fb4-72a4-4d31-81ab-a556a09fa236.cs-asia-southeast1-yelo.cloudshell.dev/api/state",
+        "https://8080-cs-29459fb4-72a4-4d31-81ab-a556a09fa236.cs-asia-southeast1-yelo.cloudshell.dev/api/state",
         { signal: ctrl.signal, headers: { Accept: "application/json" } },
       );
       clearTimeout(timeout);
