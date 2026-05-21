@@ -3,6 +3,14 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
 import { Stat } from "@/components/cyber/Stat";
 import { RadarScanner } from "@/components/cyber/RadarScanner";
+import { NeuralBrain } from "@/components/cyber/NeuralBrain";
+import { NeuralBackground } from "@/components/cyber/NeuralBackground";
+import {
+  AntigravityAgentGrid,
+  ReasoningTimeline,
+  PredictiveThreatHorizon,
+  AdaptiveDefenseHeatmap,
+} from "@/components/cyber/Antigravity";
 import { Activity, Shield, AlertTriangle, Brain, Zap, Play, Terminal, Bitcoin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +18,7 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useAntigravity, ensureAntigravityRunning } from "@/lib/antigravity-core";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -33,62 +42,20 @@ function genSeries(n = 24, base = 40) {
 function Dashboard() {
   const [series, setSeries] = useState(() => genSeries());
   const [counts, setCounts] = useState({ blocked: 14221, conf: 98.7, integ: 99.4, scans: 421 });
-  const [simData, setSimData] = useState<{
-    neural: number | null;
-    crypto: number | null;
-    before: Record<string, number | string> | null;
-    after: Record<string, number | string> | null;
-  }>({ neural: null, crypto: null, before: null, after: null });
-  const [logs, setLogs] = useState<string[]>([]);
-  const [simLoading, setSimLoading] = useState(false);
-  const [simError, setSimError] = useState<string | null>(null);
+  const runSimulation = useAntigravity((s) => s.runSimulation);
+  const neutralized = useAntigravity((s) => s.threatsNeutralized);
+  const cognitionLoad = useAntigravity((s) => s.cognitionLoad);
+  const defensePosture = useAntigravity((s) => s.defensePosture);
 
-  const coerceMetrics = (obj: unknown): Record<string, number | string> | null => {
-    if (!obj || typeof obj !== "object") return null;
-    const out: Record<string, number | string> = {};
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      const key = String(k).slice(0, 64);
-      if (typeof v === "number" && Number.isFinite(v)) out[key] = v;
-      else if (typeof v === "string") out[key] = v.slice(0, 200);
-      else if (typeof v === "boolean") out[key] = String(v);
-    }
-    return Object.keys(out).length ? out : null;
-  };
+  useEffect(() => { ensureAntigravityRunning(); }, []);
 
-  const enterSimulation = async () => {
-    setSimLoading(true);
-    setSimError(null);
-    try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 15000);
-      const res = await fetch(
-        "https://8080-cs-29459fb4-72a4-4d31-81ab-a556a09fa236.cs-asia-southeast1-yelo.cloudshell.dev/api/state",
-        { signal: ctrl.signal, headers: { Accept: "application/json" } },
-      );
-      clearTimeout(timeout);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      const pctRaw = data?.calculated_percentage;
-      const pct = typeof pctRaw === "number" ? pctRaw : Number(pctRaw);
-      const metric = String(data?.metric ?? "").toLowerCase();
-      const target: "neural" | "crypto" = metric === "crypto" ? "crypto" : "neural";
-
-      setSimData((prev) => ({
-        ...prev,
-        [target]: Number.isFinite(pct) ? pct : prev[target],
-        before: coerceMetrics(data?.before) ?? prev.before,
-        after: coerceMetrics(data?.after) ?? prev.after,
-      }));
-
-      const rawLogs: unknown = data?.logs ?? [];
-      const arr = Array.isArray(rawLogs) ? rawLogs : [String(rawLogs)];
-      setLogs(arr.slice(0, 500).map((l) => String(l).slice(0, 2000)));
-    } catch (e) {
-      setSimError(e instanceof Error ? e.message : "Simulation request failed");
-    } finally {
-      setSimLoading(false);
-    }
+  const enterSimulation = () => {
+    runSimulation();
+    setSeries((s) => s.map((p) => ({
+      ...p,
+      attacks: Math.min(120, p.attacks + 25),
+      blocked: Math.min(120, p.blocked + 30),
+    })));
   };
 
   useEffect(() => {
