@@ -81,11 +81,16 @@ function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="relative space-y-6">
+        <NeuralBackground className="-z-10 opacity-60" />
+
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// COMMAND CENTER</div>
+            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// ANTIGRAVITY NEURAL CORE</div>
             <h1 className="mt-1 font-display text-3xl md:text-4xl">Executive Defense Overview</h1>
+            <div className="mt-1 text-[10px] font-mono text-muted-foreground tracking-widest">
+              SELF-CONTAINED SIMULATION · 6 AUTONOMOUS AGENTS ONLINE
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
@@ -94,66 +99,43 @@ function Dashboard() {
             </div>
             <Button
               onClick={enterSimulation}
-              disabled={simLoading}
               size="sm"
               className="font-display tracking-[0.2em] text-[11px]"
             >
               <Play className="size-3" />
-              {simLoading ? "RUNNING…" : "ENTER SIMULATION"}
+              ENTER SIMULATION
             </Button>
           </div>
         </div>
 
-        {simError && (
-          <div className="text-[11px] font-mono text-cyber-red border border-cyber-red/40 rounded-md px-3 py-2">
-            SIMULATION ERROR · {simError}
-          </div>
-        )}
-
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Stat label="Threats Blocked" value={counts.blocked.toLocaleString()} delta="+ 7.1% past hour" tone="emerald" icon={<Shield className="size-4" />} />
-          <Stat
-            label="Neural"
-            value={simData.neural !== null ? `${simData.neural.toFixed(1)}%` : `${counts.conf.toFixed(1)}%`}
-            delta={simData.neural !== null ? "sim · live feed" : "model drift nominal"}
-            tone="cyan"
-            icon={<Brain className="size-4" />}
-          />
-          <Stat
-            label="Crypto"
-            value={simData.crypto !== null ? `${simData.crypto.toFixed(1)}%` : `${counts.integ.toFixed(1)}%`}
-            delta={simData.crypto !== null ? "sim · ledger sync" : "14,221 nodes online"}
-            tone="emerald"
-            icon={<Bitcoin className="size-4" />}
-          />
+          <Stat label="Threats Neutralized" value={(counts.blocked + neutralized).toLocaleString()} delta={`+${neutralized} this session`} tone="emerald" icon={<Shield className="size-4" />} />
+          <Stat label="Neural Cognition" value={`${(cognitionLoad * 100).toFixed(1)}%`} delta="Antigravity load" tone="cyan" icon={<Brain className="size-4" />} />
+          <Stat label="Defense Posture" value={`${(defensePosture * 100).toFixed(1)}%`} delta="adaptive" tone="emerald" icon={<Bitcoin className="size-4" />} />
           <Stat label="Active Scans" value={counts.scans} delta="auto-rotating" tone="amber" icon={<Activity className="size-4" />} />
         </div>
 
-        <Panel title="AGENT TRACE LOG" subtitle="simulation terminal output" tone="emerald" right={<Terminal className="size-4 text-cyber-emerald" />}>
-          <div className="h-48 overflow-auto rounded bg-black/60 border border-cyber-emerald/20 p-3 font-mono text-[11px] leading-relaxed text-cyber-emerald whitespace-pre-wrap break-words">
-            {logs.length === 0 ? (
-              <span className="text-muted-foreground">// awaiting simulation trace…</span>
-            ) : (
-              logs.map((line, i) => (
-                <div key={i}>
-                  <span className="text-muted-foreground mr-2">{String(i + 1).padStart(3, "0")}</span>
-                  {line}
-                </div>
-              ))
-            )}
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <AntigravityAgentGrid />
           </div>
-        </Panel>
+          <Panel title="GLOWING AI BRAIN" subtitle="core cognition visualization" tone="cyan" right={<Terminal className="size-4 text-cyber-cyan" />}>
+            <div className="grid place-items-center py-2">
+              <NeuralBrain size={220} />
+            </div>
+          </Panel>
+        </div>
 
-        {(simData.before || simData.after) && (
-          <div className="grid md:grid-cols-2 gap-4">
-            <Panel title="BEFORE · SECURITY STATE" subtitle="pre-simulation baseline" tone="amber">
-              <BeforeAfterTable data={simData.before} compareTo={simData.after} side="before" />
-            </Panel>
-            <Panel title="AFTER · SECURITY STATE" subtitle="post-remediation snapshot" tone="emerald">
-              <BeforeAfterTable data={simData.after} compareTo={simData.before} side="after" />
-            </Panel>
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <ReasoningTimeline />
           </div>
-        )}
+          <div className="space-y-4">
+            <PredictiveThreatHorizon />
+            <AdaptiveDefenseHeatmap />
+          </div>
+        </div>
+
 
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
