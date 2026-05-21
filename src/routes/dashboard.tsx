@@ -3,6 +3,14 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
 import { Stat } from "@/components/cyber/Stat";
 import { RadarScanner } from "@/components/cyber/RadarScanner";
+import { NeuralBrain } from "@/components/cyber/NeuralBrain";
+import { NeuralBackground } from "@/components/cyber/NeuralBackground";
+import {
+  AntigravityAgentGrid,
+  ReasoningTimeline,
+  PredictiveThreatHorizon,
+  AdaptiveDefenseHeatmap,
+} from "@/components/cyber/Antigravity";
 import { Activity, Shield, AlertTriangle, Brain, Zap, Play, Terminal, Bitcoin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +18,7 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useAntigravity, ensureAntigravityRunning } from "@/lib/antigravity-core";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -33,62 +42,20 @@ function genSeries(n = 24, base = 40) {
 function Dashboard() {
   const [series, setSeries] = useState(() => genSeries());
   const [counts, setCounts] = useState({ blocked: 14221, conf: 98.7, integ: 99.4, scans: 421 });
-  const [simData, setSimData] = useState<{
-    neural: number | null;
-    crypto: number | null;
-    before: Record<string, number | string> | null;
-    after: Record<string, number | string> | null;
-  }>({ neural: null, crypto: null, before: null, after: null });
-  const [logs, setLogs] = useState<string[]>([]);
-  const [simLoading, setSimLoading] = useState(false);
-  const [simError, setSimError] = useState<string | null>(null);
+  const runSimulation = useAntigravity((s) => s.runSimulation);
+  const neutralized = useAntigravity((s) => s.threatsNeutralized);
+  const cognitionLoad = useAntigravity((s) => s.cognitionLoad);
+  const defensePosture = useAntigravity((s) => s.defensePosture);
 
-  const coerceMetrics = (obj: unknown): Record<string, number | string> | null => {
-    if (!obj || typeof obj !== "object") return null;
-    const out: Record<string, number | string> = {};
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      const key = String(k).slice(0, 64);
-      if (typeof v === "number" && Number.isFinite(v)) out[key] = v;
-      else if (typeof v === "string") out[key] = v.slice(0, 200);
-      else if (typeof v === "boolean") out[key] = String(v);
-    }
-    return Object.keys(out).length ? out : null;
-  };
+  useEffect(() => { ensureAntigravityRunning(); }, []);
 
-  const enterSimulation = async () => {
-    setSimLoading(true);
-    setSimError(null);
-    try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 15000);
-      const res = await fetch(
-        "https://8080-cs-29459fb4-72a4-4d31-81ab-a556a09fa236.cs-asia-southeast1-yelo.cloudshell.dev/api/state",
-        { signal: ctrl.signal, headers: { Accept: "application/json" } },
-      );
-      clearTimeout(timeout);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      const pctRaw = data?.calculated_percentage;
-      const pct = typeof pctRaw === "number" ? pctRaw : Number(pctRaw);
-      const metric = String(data?.metric ?? "").toLowerCase();
-      const target: "neural" | "crypto" = metric === "crypto" ? "crypto" : "neural";
-
-      setSimData((prev) => ({
-        ...prev,
-        [target]: Number.isFinite(pct) ? pct : prev[target],
-        before: coerceMetrics(data?.before) ?? prev.before,
-        after: coerceMetrics(data?.after) ?? prev.after,
-      }));
-
-      const rawLogs: unknown = data?.logs ?? [];
-      const arr = Array.isArray(rawLogs) ? rawLogs : [String(rawLogs)];
-      setLogs(arr.slice(0, 500).map((l) => String(l).slice(0, 2000)));
-    } catch (e) {
-      setSimError(e instanceof Error ? e.message : "Simulation request failed");
-    } finally {
-      setSimLoading(false);
-    }
+  const enterSimulation = () => {
+    runSimulation();
+    setSeries((s) => s.map((p) => ({
+      ...p,
+      attacks: Math.min(120, p.attacks + 25),
+      blocked: Math.min(120, p.blocked + 30),
+    })));
   };
 
   useEffect(() => {
@@ -114,11 +81,16 @@ function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="relative space-y-6">
+        <NeuralBackground className="-z-10 opacity-60" />
+
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// COMMAND CENTER</div>
+            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// ANTIGRAVITY NEURAL CORE</div>
             <h1 className="mt-1 font-display text-3xl md:text-4xl">Executive Defense Overview</h1>
+            <div className="mt-1 text-[10px] font-mono text-muted-foreground tracking-widest">
+              SELF-CONTAINED SIMULATION · 6 AUTONOMOUS AGENTS ONLINE
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
@@ -127,66 +99,43 @@ function Dashboard() {
             </div>
             <Button
               onClick={enterSimulation}
-              disabled={simLoading}
               size="sm"
               className="font-display tracking-[0.2em] text-[11px]"
             >
               <Play className="size-3" />
-              {simLoading ? "RUNNING…" : "ENTER SIMULATION"}
+              ENTER SIMULATION
             </Button>
           </div>
         </div>
 
-        {simError && (
-          <div className="text-[11px] font-mono text-cyber-red border border-cyber-red/40 rounded-md px-3 py-2">
-            SIMULATION ERROR · {simError}
-          </div>
-        )}
-
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Stat label="Threats Blocked" value={counts.blocked.toLocaleString()} delta="+ 7.1% past hour" tone="emerald" icon={<Shield className="size-4" />} />
-          <Stat
-            label="Neural"
-            value={simData.neural !== null ? `${simData.neural.toFixed(1)}%` : `${counts.conf.toFixed(1)}%`}
-            delta={simData.neural !== null ? "sim · live feed" : "model drift nominal"}
-            tone="cyan"
-            icon={<Brain className="size-4" />}
-          />
-          <Stat
-            label="Crypto"
-            value={simData.crypto !== null ? `${simData.crypto.toFixed(1)}%` : `${counts.integ.toFixed(1)}%`}
-            delta={simData.crypto !== null ? "sim · ledger sync" : "14,221 nodes online"}
-            tone="emerald"
-            icon={<Bitcoin className="size-4" />}
-          />
+          <Stat label="Threats Neutralized" value={(counts.blocked + neutralized).toLocaleString()} delta={`+${neutralized} this session`} tone="emerald" icon={<Shield className="size-4" />} />
+          <Stat label="Neural Cognition" value={`${(cognitionLoad * 100).toFixed(1)}%`} delta="Antigravity load" tone="cyan" icon={<Brain className="size-4" />} />
+          <Stat label="Defense Posture" value={`${(defensePosture * 100).toFixed(1)}%`} delta="adaptive" tone="emerald" icon={<Bitcoin className="size-4" />} />
           <Stat label="Active Scans" value={counts.scans} delta="auto-rotating" tone="amber" icon={<Activity className="size-4" />} />
         </div>
 
-        <Panel title="AGENT TRACE LOG" subtitle="simulation terminal output" tone="emerald" right={<Terminal className="size-4 text-cyber-emerald" />}>
-          <div className="h-48 overflow-auto rounded bg-black/60 border border-cyber-emerald/20 p-3 font-mono text-[11px] leading-relaxed text-cyber-emerald whitespace-pre-wrap break-words">
-            {logs.length === 0 ? (
-              <span className="text-muted-foreground">// awaiting simulation trace…</span>
-            ) : (
-              logs.map((line, i) => (
-                <div key={i}>
-                  <span className="text-muted-foreground mr-2">{String(i + 1).padStart(3, "0")}</span>
-                  {line}
-                </div>
-              ))
-            )}
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <AntigravityAgentGrid />
           </div>
-        </Panel>
+          <Panel title="GLOWING AI BRAIN" subtitle="core cognition visualization" tone="cyan" right={<Terminal className="size-4 text-cyber-cyan" />}>
+            <div className="grid place-items-center py-2">
+              <NeuralBrain size={220} />
+            </div>
+          </Panel>
+        </div>
 
-        {(simData.before || simData.after) && (
-          <div className="grid md:grid-cols-2 gap-4">
-            <Panel title="BEFORE · SECURITY STATE" subtitle="pre-simulation baseline" tone="amber">
-              <BeforeAfterTable data={simData.before} compareTo={simData.after} side="before" />
-            </Panel>
-            <Panel title="AFTER · SECURITY STATE" subtitle="post-remediation snapshot" tone="emerald">
-              <BeforeAfterTable data={simData.after} compareTo={simData.before} side="after" />
-            </Panel>
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <ReasoningTimeline />
           </div>
-        )}
+          <div className="space-y-4">
+            <PredictiveThreatHorizon />
+            <AdaptiveDefenseHeatmap />
+          </div>
+        </div>
+
 
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
@@ -305,38 +254,3 @@ function RiskGauge({ value }: { value: number }) {
   );
 }
 
-function BeforeAfterTable({
-  data,
-  compareTo,
-  side,
-}: {
-  data: Record<string, number | string> | null;
-  compareTo: Record<string, number | string> | null;
-  side: "before" | "after";
-}) {
-  if (!data) {
-    return <div className="text-[11px] font-mono text-muted-foreground">// no data</div>;
-  }
-  return (
-    <ul className="space-y-1.5 text-[11px] font-mono">
-      {Object.entries(data).map(([k, v]) => {
-        const other = compareTo?.[k];
-        const isNum = typeof v === "number" && typeof other === "number";
-        const delta = isNum ? (v as number) - (other as number) : 0;
-        const trend = !isNum
-          ? ""
-          : side === "after" && delta > 0
-            ? "text-cyber-emerald"
-            : side === "after" && delta < 0
-              ? "text-cyber-red"
-              : "text-muted-foreground";
-        return (
-          <li key={k} className="flex items-center justify-between gap-3 border-b border-border/40 pb-1">
-            <span className="text-muted-foreground truncate">{k}</span>
-            <span className={`tabular-nums ${trend}`}>{String(v)}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
