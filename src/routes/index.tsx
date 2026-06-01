@@ -7,20 +7,21 @@ export const Route = createFileRoute("/")({
   component: Intro,
   head: () => ({
     meta: [
-      { title: "AI Shield OS — Boot Sequence" },
-      { name: "description", content: "Boot the AI Shield OS cyber defense operating system." },
+      { title: "Cyber Aura OS — Adaptive Security Intelligence" },
+      { name: "description", content: "Cyber Aura OS is a self-evolving security intelligence system built to defend against today's cyber threats and tomorrow's AI-driven attacks." },
     ],
   }),
 });
 
 const bootLines = [
-  "[BOOT] Loading kernel module shield-os.4.2.1.ko ...",
-  "[CRYP] Negotiating post-quantum lattice handshake — OK",
-  "[NEUR] Mounting Defense AI weights · 4.2B parameters",
-  "[MESH] Telemetry uplink to 14,221 perimeter nodes",
-  "[VOIC] Audio sentinel calibrated · 16kHz multi-band",
-  "[INIT] Holographic interface ready",
-  "[OK  ] All systems nominal — operator clearance required",
+  "[BOOT] Cyber Aura OS · kernel cyber-aura.7.0.1.ko loading ...",
+  "[CORE] Awakening ANTIGRAVITY Neural Core · master AI brain online",
+  "[AGEN] Initializing swarm · Sentinel · Hydra · Athena · Cortex · Ghost · Eclipse",
+  "[PRED] Predictive threat horizon synchronized · T+90s lookahead",
+  "[ADAP] Adaptive defense matrix calibrated · self-evolving feedback loop armed",
+  "[CRYP] Post-quantum lattice handshake — OK",
+  "[SIM ] Simulation sandbox ready · awareness · research · demonstration",
+  "[OK  ] Aura stabilized — operator clearance required",
 ];
 
 function Intro() {
@@ -52,7 +53,7 @@ function Intro() {
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyber-cyan/40 text-[11px] font-mono tracking-[0.3em] text-cyber-cyan text-glow-cyan"
           >
             <span className="size-1.5 rounded-full bg-cyber-emerald animate-pulse" />
-            SECURE BOOT · NEXUS FRAMEWORK
+            ADAPTIVE SECURITY INTELLIGENCE · ANTIGRAVITY CORE
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
@@ -60,8 +61,8 @@ function Intro() {
             transition={{ delay: 0.1, duration: 0.7 }}
             className="mt-6 font-display text-5xl md:text-7xl leading-[1.05] tracking-tight"
           >
-            <span className="text-foreground">AI</span>{" "}
-            <span className="text-cyber-cyan text-glow-cyan">SHIELD</span>{" "}
+            <span className="text-foreground">CYBER</span>{" "}
+            <span className="text-cyber-cyan text-glow-cyan">AURA</span>{" "}
             <span className="text-foreground">OS</span>
           </motion.h1>
           <motion.p
@@ -70,9 +71,17 @@ function Intro() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="mt-4 max-w-xl text-sm md:text-base text-muted-foreground font-mono leading-relaxed"
           >
-            An autonomous cyber defense operating system where attack AI and defense AI
-            wage war in real time. Witness threats mutate, neutralize, and adapt across
-            the global mesh — from the operator chair.
+            A self-evolving security intelligence system built to defend against
+            today's cyber threats and tomorrow's AI-driven attacks — keeping
+            digital safety always ahead of evolution.
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.7 }}
+            className="mt-3 max-w-xl text-[11px] text-cyber-cyan/70 font-mono tracking-wider"
+          >
+            PREDICTIVE · ADAPTIVE · FUTURE-PROOF · CONTINUOUSLY EVOLVING
           </motion.p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -92,9 +101,14 @@ function Intro() {
           </div>
 
           <div className="mt-10 grid grid-cols-3 gap-4 max-w-md text-[10px] tracking-[0.2em] text-muted-foreground">
-            <Spec icon={<Cpu className="size-3.5" />} k="NEURAL" v="4.2B" />
-            <Spec icon={<Lock className="size-3.5" />} k="CRYPTO" v="PQ-LATTICE" />
-            <Spec icon={<Shield className="size-3.5" />} k="UPTIME" v="99.998%" />
+            <Spec icon={<Cpu className="size-3.5" />} k="CORE" v="ANTIGRAVITY" />
+            <Spec icon={<Lock className="size-3.5" />} k="MODE" v="PREDICTIVE" />
+            <Spec icon={<Shield className="size-3.5" />} k="AGENTS" v="6 ACTIVE" />
+          </div>
+
+          <div className="mt-6 max-w-xl text-[10px] font-mono tracking-wider text-muted-foreground/70 border-l border-cyber-cyan/30 pl-3">
+            SIMULATION-BASED AI SECURITY INTELLIGENCE · DESIGNED FOR AWARENESS,
+            RESEARCH & DEMONSTRATION · NOT A REAL-WORLD AUTONOMOUS ATTACK SYSTEM
           </div>
         </div>
 

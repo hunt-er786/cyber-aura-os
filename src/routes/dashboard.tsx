@@ -24,8 +24,8 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
   head: () => ({
     meta: [
-      { title: "Command Center — AI Shield OS" },
-      { name: "description", content: "Live cyber defense executive command center." },
+      { title: "Command Center — Cyber Aura OS" },
+      { name: "description", content: "Antigravity Neural Core command center · adaptive security intelligence." },
     ],
   }),
 });
@@ -86,10 +86,15 @@ function Dashboard() {
 
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// ANTIGRAVITY NEURAL CORE</div>
-            <h1 className="mt-1 font-display text-3xl md:text-4xl">Executive Defense Overview</h1>
-            <div className="mt-1 text-[10px] font-mono text-muted-foreground tracking-widest">
-              SELF-CONTAINED SIMULATION · 6 AUTONOMOUS AGENTS ONLINE
+            <div className="text-[11px] tracking-[0.3em] text-cyber-cyan text-glow-cyan">// CYBER AURA OS · ANTIGRAVITY NEURAL CORE</div>
+            <h1 className="mt-1 font-display text-3xl md:text-4xl">Adaptive Security Command Center</h1>
+            <div className="mt-2 max-w-2xl text-xs font-mono text-muted-foreground leading-relaxed">
+              The Antigravity master AI brain coordinates 6 specialized agents — Sentinel, Hydra,
+              Athena, Cortex, Ghost, Eclipse — to predict, adapt and evolve defenses against
+              today's threats and tomorrow's AI-driven attacks.
+            </div>
+            <div className="mt-2 text-[10px] font-mono text-cyber-cyan/60 tracking-widest">
+              SIMULATION MODE · PREDICTIVE · ADAPTIVE · SELF-EVOLVING
             </div>
           </div>
           <div className="flex items-center gap-3">
