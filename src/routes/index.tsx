@@ -7,8 +7,8 @@ export const Route = createFileRoute("/")({
   component: Intro,
   head: () => ({
     meta: [
-      { title: "AI Shield OS — Boot Sequence" },
-      { name: "description", content: "Boot the AI Shield OS cyber defense operating system." },
+      { title: "Cyber Aura OS — Adaptive Security Intelligence" },
+      { name: "description", content: "Cyber Aura OS is a self-evolving security intelligence system built to defend against today's cyber threats and tomorrow's AI-driven attacks." },
     ],
   }),
 });
