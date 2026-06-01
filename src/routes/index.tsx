@@ -14,13 +14,14 @@ export const Route = createFileRoute("/")({
 });
 
 const bootLines = [
-  "[BOOT] Loading kernel module shield-os.4.2.1.ko ...",
-  "[CRYP] Negotiating post-quantum lattice handshake — OK",
-  "[NEUR] Mounting Defense AI weights · 4.2B parameters",
-  "[MESH] Telemetry uplink to 14,221 perimeter nodes",
-  "[VOIC] Audio sentinel calibrated · 16kHz multi-band",
-  "[INIT] Holographic interface ready",
-  "[OK  ] All systems nominal — operator clearance required",
+  "[BOOT] Cyber Aura OS · kernel cyber-aura.7.0.1.ko loading ...",
+  "[CORE] Awakening ANTIGRAVITY Neural Core · master AI brain online",
+  "[AGEN] Initializing swarm · Sentinel · Hydra · Athena · Cortex · Ghost · Eclipse",
+  "[PRED] Predictive threat horizon synchronized · T+90s lookahead",
+  "[ADAP] Adaptive defense matrix calibrated · self-evolving feedback loop armed",
+  "[CRYP] Post-quantum lattice handshake — OK",
+  "[SIM ] Simulation sandbox ready · awareness · research · demonstration",
+  "[OK  ] Aura stabilized — operator clearance required",
 ];
 
 function Intro() {
