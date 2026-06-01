@@ -53,7 +53,7 @@ function Intro() {
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyber-cyan/40 text-[11px] font-mono tracking-[0.3em] text-cyber-cyan text-glow-cyan"
           >
             <span className="size-1.5 rounded-full bg-cyber-emerald animate-pulse" />
-            SECURE BOOT · NEXUS FRAMEWORK
+            ADAPTIVE SECURITY INTELLIGENCE · ANTIGRAVITY CORE
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
@@ -61,8 +61,8 @@ function Intro() {
             transition={{ delay: 0.1, duration: 0.7 }}
             className="mt-6 font-display text-5xl md:text-7xl leading-[1.05] tracking-tight"
           >
-            <span className="text-foreground">AI</span>{" "}
-            <span className="text-cyber-cyan text-glow-cyan">SHIELD</span>{" "}
+            <span className="text-foreground">CYBER</span>{" "}
+            <span className="text-cyber-cyan text-glow-cyan">AURA</span>{" "}
             <span className="text-foreground">OS</span>
           </motion.h1>
           <motion.p
@@ -71,9 +71,17 @@ function Intro() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="mt-4 max-w-xl text-sm md:text-base text-muted-foreground font-mono leading-relaxed"
           >
-            An autonomous cyber defense operating system where attack AI and defense AI
-            wage war in real time. Witness threats mutate, neutralize, and adapt across
-            the global mesh — from the operator chair.
+            A self-evolving security intelligence system built to defend against
+            today's cyber threats and tomorrow's AI-driven attacks — keeping
+            digital safety always ahead of evolution.
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.7 }}
+            className="mt-3 max-w-xl text-[11px] text-cyber-cyan/70 font-mono tracking-wider"
+          >
+            PREDICTIVE · ADAPTIVE · FUTURE-PROOF · CONTINUOUSLY EVOLVING
           </motion.p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
