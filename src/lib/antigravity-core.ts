@@ -110,6 +110,19 @@ type CoreState = {
 let _eid = 0;
 let _pid = 0;
 
+// Deterministic initial values — must match on server and client to avoid
+// React hydration mismatches. Randomization happens only after mount via tick().
+const INIT_AGENT_VALUES: Record<AgentId, { confidence: number; threatLevel: number; latencyMs: number; memorySync: number }> = {
+  sentinel: { confidence: 0.72, threatLevel: 18, latencyMs: 62, memorySync: 0.82 },
+  hydra:    { confidence: 0.68, threatLevel: 24, latencyMs: 78, memorySync: 0.76 },
+  athena:   { confidence: 0.81, threatLevel: 15, latencyMs: 54, memorySync: 0.88 },
+  cortex:   { confidence: 0.77, threatLevel: 12, latencyMs: 48, memorySync: 0.91 },
+  ghost:    { confidence: 0.65, threatLevel: 21, latencyMs: 70, memorySync: 0.79 },
+  eclipse:  { confidence: 0.74, threatLevel: 17, latencyMs: 58, memorySync: 0.85 },
+};
+
+const INIT_HEATMAP = [0.12, 0.28, 0.41, 0.19, 0.33, 0.47, 0.22, 0.38, 0.15, 0.44, 0.26, 0.31];
+
 const initialAgents = (): Record<AgentId, Agent> =>
   Object.fromEntries(
     (Object.keys(AGENT_SEED) as AgentId[]).map((id) => [
@@ -119,10 +132,7 @@ const initialAgents = (): Record<AgentId, Agent> =>
         ...AGENT_SEED[id],
         status: "IDLE" as AgentStatus,
         reasoning: "standing by",
-        confidence: 0.6 + Math.random() * 0.2,
-        threatLevel: 10 + Math.random() * 20,
-        latencyMs: 40 + Math.random() * 60,
-        memorySync: 0.7 + Math.random() * 0.2,
+        ...INIT_AGENT_VALUES[id],
         activity: 0.3,
       },
     ]),
@@ -137,7 +147,7 @@ export const useAntigravity = create<CoreState>((set, get) => ({
   agents: initialAgents(),
   timeline: [],
   predictions: [],
-  heatmap: Array.from({ length: 12 }, () => Math.random() * 0.5),
+  heatmap: [...INIT_HEATMAP],
   simulationCycle: 0,
 
   reset: () => set({
@@ -146,7 +156,7 @@ export const useAntigravity = create<CoreState>((set, get) => ({
     predictions: [],
     threatsNeutralized: 0,
     simulationCycle: 0,
-    heatmap: Array.from({ length: 12 }, () => Math.random() * 0.5),
+    heatmap: [...INIT_HEATMAP],
   }),
 
   tick: () => {
