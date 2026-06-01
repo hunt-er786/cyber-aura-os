@@ -12,12 +12,18 @@ export type AgentId = "sentinel" | "hydra" | "athena" | "cortex" | "ghost" | "ec
 
 export type AgentStatus = "IDLE" | "SCANNING" | "REASONING" | "ENGAGING" | "SYNCING";
 
+export type AgentMode = "PASSIVE" | "MONITOR" | "ACTIVE" | "AGGRESSIVE" | "STEALTH" | "FORECAST";
+
 export type Agent = {
   id: AgentId;
   codename: string;
   role: string;
   status: AgentStatus;
+  mode: AgentMode;
   reasoning: string;
+  signals: string[];        // recent detected signals (max 4)
+  lastAction: string;       // most recent defense action
+  lastActionAt: number;     // timestamp
   confidence: number;       // 0-1
   threatLevel: number;      // 0-100
   latencyMs: number;        // response latency
@@ -25,6 +31,7 @@ export type Agent = {
   activity: number;         // 0-1 pulse
   color: "cyan" | "emerald" | "amber" | "red" | "violet" | "blue";
 };
+
 
 export type ReasoningEvent = {
   id: number;
