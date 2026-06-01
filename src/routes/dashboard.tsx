@@ -24,8 +24,8 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
   head: () => ({
     meta: [
-      { title: "Command Center — AI Shield OS" },
-      { name: "description", content: "Live cyber defense executive command center." },
+      { title: "Command Center — Cyber Aura OS" },
+      { name: "description", content: "Antigravity Neural Core command center · adaptive security intelligence." },
     ],
   }),
 });
