@@ -143,6 +143,12 @@ function Dashboard() {
           </div>
         </div>
 
+        <AgentDetailPanels />
+
+        <AdaptiveLearningStream />
+
+
+
 
         <div className="grid lg:grid-cols-3 gap-4">
           <Panel title="LIVE ATTACK FREQUENCY" subtitle="incoming vs neutralized — last 24 ticks" className="lg:col-span-2">
