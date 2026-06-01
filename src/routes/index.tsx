@@ -101,9 +101,14 @@ function Intro() {
           </div>
 
           <div className="mt-10 grid grid-cols-3 gap-4 max-w-md text-[10px] tracking-[0.2em] text-muted-foreground">
-            <Spec icon={<Cpu className="size-3.5" />} k="NEURAL" v="4.2B" />
-            <Spec icon={<Lock className="size-3.5" />} k="CRYPTO" v="PQ-LATTICE" />
-            <Spec icon={<Shield className="size-3.5" />} k="UPTIME" v="99.998%" />
+            <Spec icon={<Cpu className="size-3.5" />} k="CORE" v="ANTIGRAVITY" />
+            <Spec icon={<Lock className="size-3.5" />} k="MODE" v="PREDICTIVE" />
+            <Spec icon={<Shield className="size-3.5" />} k="AGENTS" v="6 ACTIVE" />
+          </div>
+
+          <div className="mt-6 max-w-xl text-[10px] font-mono tracking-wider text-muted-foreground/70 border-l border-cyber-cyan/30 pl-3">
+            SIMULATION-BASED AI SECURITY INTELLIGENCE · DESIGNED FOR AWARENESS,
+            RESEARCH & DEMONSTRATION · NOT A REAL-WORLD AUTONOMOUS ATTACK SYSTEM
           </div>
         </div>
 
