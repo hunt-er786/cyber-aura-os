@@ -92,23 +92,82 @@ const REASONING_TEMPLATES: Record<AgentId, string[]> = {
   ],
 };
 
+const AGENT_MODES: Record<AgentId, AgentMode[]> = {
+  sentinel: ["MONITOR", "ACTIVE", "PASSIVE"],
+  hydra:    ["ACTIVE", "AGGRESSIVE"],
+  athena:   ["MONITOR", "ACTIVE", "FORECAST"],
+  cortex:   ["PASSIVE", "MONITOR"],
+  ghost:    ["STEALTH", "PASSIVE", "MONITOR"],
+  eclipse:  ["FORECAST", "MONITOR"],
+};
+
+const INIT_AGENT_MODE: Record<AgentId, AgentMode> = {
+  sentinel: "MONITOR", hydra: "ACTIVE", athena: "MONITOR",
+  cortex: "PASSIVE", ghost: "STEALTH", eclipse: "FORECAST",
+};
+
+const SIGNAL_TEMPLATES: Record<AgentId, string[]> = {
+  sentinel: ["TLS-fp::ja3_anomaly", "edge-mesh::n14_spike", "perimeter::Δ0.81", "c2-corpus::match_0.74", "ingress::burst_2.4kpps"],
+  hydra:    ["payload::morph_g14", "ransomware::swarm_active", "honeynet::absorb_92%", "counter-vec::3_spawned", "blast::contained"],
+  athena:   ["posture::active_denial", "game-theory::pivot_supply", "swarm::directive_issued", "model::converged", "intent::adversarial_0.88"],
+  cortex:   ["embedding::14221_indexed", "pattern::CVE-2024-3094", "lattice::sync_ok", "memory::Δ_committed", "recall::sim_0.87"],
+  ghost:    ["decoy::7_honeytokens", "eu-west-2::engaged", "ttp::captured", "deception::layer_3", "intel::handoff_cortex"],
+  eclipse:  ["forecast::T+60s_0.71", "horizon::APAC_widening", "predict::deepfake_esc", "shield::preempt_issued", "trend::rising"],
+};
+
+const ACTION_TEMPLATES: Record<AgentId, string[]> = {
+  sentinel: ["Quarantined ingress flow on edge-mesh n14", "Hardened TLS policy on east-1 perimeter", "Escalated anomaly to Athena council"],
+  hydra:    ["Deployed counter-payload generation 14", "Absorbed ransomware blast via honeynet relay", "Neutralized 3 attack vectors simultaneously"],
+  athena:   ["Shifted swarm posture to ACTIVE DENIAL", "Issued coordination directive to Hydra+Ghost", "Recalibrated game-theoretic response model"],
+  cortex:   ["Committed neural delta to long-term lattice", "Fused threat embedding into pattern memory", "Synthesized new defense heuristic v4.21"],
+  ghost:    ["Deployed 7 honeytokens across eu-west-2", "Captured adversary TTPs via decoy engagement", "Rotated deception mesh credentials"],
+  eclipse:  ["Issued pre-emptive shield to Sentinel grid", "Recalibrated predictive heatmap (APAC)", "Forecasted T+60s deepfake escalation"],
+};
+
+const STRATEGY_DELTAS = [
+  "weights rebalanced toward zero-day surface",
+  "recall window 30s → 45s",
+  "honeypot fidelity tier 2 → tier 3",
+  "phishing threshold 0.62 → 0.71",
+  "counter-vector pool +2 strategies",
+  "exploration rate 0.18 → 0.12",
+  "fused new TTP signature into lattice",
+  "perimeter sensitivity east-1 raised",
+  "deprecated rule cluster R-118",
+  "swarm coherence target +4%",
+];
+
 const VECTORS = ["phishing", "ransomware", "deepfake", "zero-day", "ddos", "supply-chain", "botnet", "exploit"] as const;
 const REGIONS: ThreatPrediction["region"][] = ["NA", "EU", "APAC", "LATAM", "MEA"];
 const STATUSES: AgentStatus[] = ["SCANNING", "REASONING", "ENGAGING", "SYNCING"];
 
 const rand = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)];
 
+export type LearningEvent = {
+  id: number;
+  ts: number;
+  agent: AgentId;
+  trigger: string;
+  delta: string;
+  impact: number;        // 0-1
+  modelVersion: string;
+};
+
 type CoreState = {
   online: boolean;
-  cognitionLoad: number;        // 0-1
-  swarmCoherence: number;       // 0-1
-  defensePosture: number;       // 0-1
+  cognitionLoad: number;
+  swarmCoherence: number;
+  defensePosture: number;
   threatsNeutralized: number;
   agents: Record<AgentId, Agent>;
   timeline: ReasoningEvent[];
   predictions: ThreatPrediction[];
-  heatmap: number[];            // 12 cells, 0-1
+  heatmap: number[];
   simulationCycle: number;
+  learningEvents: LearningEvent[];
+  modelVersion: { major: number; minor: number };
+  learningRate: number;
+  adaptationScore: number;
   tick: () => void;
   runSimulation: () => void;
   reset: () => void;
@@ -116,6 +175,7 @@ type CoreState = {
 
 let _eid = 0;
 let _pid = 0;
+let _lid = 0;
 
 // Deterministic initial values — must match on server and client to avoid
 // React hydration mismatches. Randomization happens only after mount via tick().
