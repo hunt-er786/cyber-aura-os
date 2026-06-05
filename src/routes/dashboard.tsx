@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Panel } from "@/components/cyber/Panel";
 import { Stat } from "@/components/cyber/Stat";
 import { RadarScanner } from "@/components/cyber/RadarScanner";
-import { NeuralBrain } from "@/components/cyber/NeuralBrain";
+import { AntigravityBrain } from "@/components/cyber/AntigravityBrain";
 import { NeuralBackground } from "@/components/cyber/NeuralBackground";
 import {
   AntigravityAgentGrid,
@@ -126,9 +126,9 @@ function Dashboard() {
           <div className="lg:col-span-2">
             <AntigravityAgentGrid />
           </div>
-          <Panel title="GLOWING AI BRAIN" subtitle="core cognition visualization" tone="cyan" right={<Terminal className="size-4 text-cyber-cyan" />}>
-            <div className="grid place-items-center py-2">
-              <NeuralBrain size={220} />
+          <Panel title="ANTIGRAVITY BRAIN" subtitle="live agent cognition · firing in real time" tone="cyan" right={<Terminal className="size-4 text-cyber-cyan" />}>
+            <div className="py-2">
+              <AntigravityBrain size={240} />
             </div>
           </Panel>
         </div>
