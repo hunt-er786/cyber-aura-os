@@ -13,6 +13,7 @@ import {
 } from "@/components/cyber/Antigravity";
 import { AgentDetailPanels } from "@/components/cyber/AgentDetailPanels";
 import { AdaptiveLearningStream } from "@/components/cyber/AdaptiveLearning";
+import { BrainControl } from "@/components/cyber/BrainControl";
 import { Activity, Shield, AlertTriangle, Brain, Zap, Play, Terminal, Bitcoin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
