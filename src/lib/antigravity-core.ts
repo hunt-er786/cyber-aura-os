@@ -153,8 +153,17 @@ export type LearningEvent = {
   modelVersion: string;
 };
 
+export type BrainMode = "LEARNING" | "NEUTRALIZE" | "ESCALATE";
+
+export const BRAIN_MODE_META: Record<BrainMode, { label: string; tagline: string; color: "emerald" | "cyan" | "red" }> = {
+  LEARNING:   { label: "LEARNING",   tagline: "passive observation · maximize adaptation",      color: "emerald" },
+  NEUTRALIZE: { label: "NEUTRALIZE", tagline: "balanced engagement · contain & neutralize",     color: "cyan" },
+  ESCALATE:   { label: "ESCALATE",   tagline: "full aggression · counter-strike all vectors",   color: "red" },
+};
+
 type CoreState = {
   online: boolean;
+  brainMode: BrainMode;
   cognitionLoad: number;
   swarmCoherence: number;
   defensePosture: number;
@@ -171,6 +180,8 @@ type CoreState = {
   tick: () => void;
   runSimulation: () => void;
   reset: () => void;
+  setBrainMode: (m: BrainMode) => void;
+  injectConflictSignal: (input: { who: "ATTACK" | "DEFENSE" | "SYSTEM"; msg: string }) => void;
 };
 
 let _eid = 0;
