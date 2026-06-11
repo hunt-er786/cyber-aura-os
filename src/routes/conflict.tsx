@@ -16,6 +16,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   BarChart, Bar, Legend,
 } from "recharts";
+import { useAntigravity, ensureAntigravityRunning } from "@/lib/antigravity-core";
 
 export const Route = createFileRoute("/conflict")({
   component: Conflict,
