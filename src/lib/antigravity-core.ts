@@ -240,6 +240,7 @@ const initialAgents = (): Record<AgentId, Agent> =>
 
 export const useAntigravity = create<CoreState>((set, get) => ({
   online: true,
+  brainMode: "NEUTRALIZE",
   cognitionLoad: 0.42,
   swarmCoherence: 0.78,
   defensePosture: 0.74,
@@ -254,6 +255,110 @@ export const useAntigravity = create<CoreState>((set, get) => ({
   learningRate: 0.42,
   adaptationScore: 0.68,
 
+  setBrainMode: (m) => {
+    const s = get();
+    // Reflect mode change instantly across agents and posture.
+    const updates: Partial<Record<AgentId, Partial<Agent>>> = {};
+    const ids = Object.keys(s.agents) as AgentId[];
+    let actionText = "";
+    let posture = s.defensePosture;
+    let cog = s.cognitionLoad;
+    let coh = s.swarmCoherence;
+    let rate = s.learningRate;
+
+    if (m === "LEARNING") {
+      actionText = "Brain switched → LEARNING · agents observing, adaptation boosted";
+      ids.forEach((id) => { updates[id] = { mode: id === "hydra" ? "PASSIVE" : id === "eclipse" ? "FORECAST" : "MONITOR", status: "SCANNING", activity: 0.45 }; });
+      rate = Math.min(0.95, s.learningRate + 0.18);
+      cog = Math.min(1, s.cognitionLoad + 0.1);
+      posture = Math.max(0.45, s.defensePosture - 0.05);
+    } else if (m === "NEUTRALIZE") {
+      actionText = "Brain switched → NEUTRALIZE · balanced posture engaged";
+      ids.forEach((id) => { updates[id] = { mode: id === "hydra" ? "ACTIVE" : id === "ghost" ? "STEALTH" : "MONITOR", status: "REASONING", activity: 0.7 }; });
+      posture = Math.min(0.97, s.defensePosture + 0.06);
+      coh = Math.min(1, s.swarmCoherence + 0.05);
+    } else {
+      actionText = "Brain switched → ESCALATE · all agents weapons-free";
+      ids.forEach((id) => { updates[id] = { mode: id === "cortex" ? "MONITOR" : "AGGRESSIVE", status: "ENGAGING", activity: 1, lastAction: rand(ACTION_TEMPLATES[id]), lastActionAt: Date.now() }; });
+      posture = Math.min(0.99, s.defensePosture + 0.12);
+      cog = Math.min(1, s.cognitionLoad + 0.22);
+      coh = Math.min(1, s.swarmCoherence + 0.08);
+    }
+
+    const agents = { ...s.agents };
+    ids.forEach((id) => { agents[id] = { ...agents[id], ...updates[id]! }; });
+
+    const event: ReasoningEvent = {
+      id: ++_eid, ts: Date.now(), agent: "athena", channel: "SWARM", message: actionText,
+    };
+    const le: LearningEvent = {
+      id: ++_lid, ts: Date.now(), agent: "athena",
+      trigger: `brain mode → ${m}`, delta: `policy matrix re-weighted for ${m.toLowerCase()} doctrine`,
+      impact: m === "ESCALATE" ? 0.95 : m === "LEARNING" ? 0.7 : 0.55,
+      modelVersion: `v${s.modelVersion.major}.${s.modelVersion.minor.toString().padStart(2, "0")}`,
+    };
+
+    set({
+      brainMode: m, agents,
+      defensePosture: posture, cognitionLoad: cog, swarmCoherence: coh, learningRate: rate,
+      timeline: [event, ...s.timeline].slice(0, 80),
+      learningEvents: [le, ...s.learningEvents].slice(0, 40),
+    });
+  },
+
+  injectConflictSignal: ({ who, msg }) => {
+    const s = get();
+    const focus: AgentId =
+      who === "ATTACK" ? (Math.random() < 0.5 ? "sentinel" : "eclipse") :
+      who === "DEFENSE" ? (Math.random() < 0.5 ? "hydra" : "athena") :
+      "cortex";
+    const a = s.agents[focus];
+    const isAttack = who === "ATTACK";
+    const isDefense = who === "DEFENSE";
+
+    const agents = { ...s.agents, [focus]: {
+      ...a,
+      status: isAttack ? "SCANNING" : isDefense ? "ENGAGING" : "SYNCING",
+      signals: [`conflict::${who.toLowerCase()}`, ...a.signals].slice(0, 4),
+      lastAction: isDefense ? `Responded to conflict tick · ${msg.slice(0, 48)}` : a.lastAction,
+      lastActionAt: isDefense ? Date.now() : a.lastActionAt,
+      activity: Math.min(1, a.activity + 0.25),
+      threatLevel: Math.max(0, Math.min(100, a.threatLevel + (isAttack ? 6 : -4))),
+    } as Agent };
+
+    const event: ReasoningEvent = {
+      id: ++_eid, ts: Date.now(), agent: focus,
+      channel: isAttack ? "COGNITION" : isDefense ? "ACTION" : "MEMORY",
+      message: `[CONFLICT/${who}] ${msg}`,
+    };
+
+    let learningEvents = s.learningEvents;
+    let modelVersion = s.modelVersion;
+    let adaptation = s.adaptationScore;
+    let neutralized = s.threatsNeutralized;
+
+    if (isDefense) {
+      const minor = s.modelVersion.minor + 1;
+      modelVersion = minor >= 99 ? { major: s.modelVersion.major + 1, minor: 0 } : { major: s.modelVersion.major, minor };
+      const impact = s.brainMode === "ESCALATE" ? 0.9 : s.brainMode === "LEARNING" ? 0.75 : 0.6;
+      learningEvents = [{
+        id: ++_lid, ts: Date.now(), agent: focus,
+        trigger: `conflict-engine · defense response`,
+        delta: rand(STRATEGY_DELTAS),
+        impact,
+        modelVersion: `v${modelVersion.major}.${modelVersion.minor.toString().padStart(2, "0")}`,
+      }, ...s.learningEvents].slice(0, 40);
+      adaptation = Math.min(0.99, s.adaptationScore * 0.9 + impact * 0.1);
+      neutralized = s.threatsNeutralized + (s.brainMode === "ESCALATE" ? 2 : 1);
+    }
+
+    set({
+      agents,
+      timeline: [event, ...s.timeline].slice(0, 80),
+      learningEvents, modelVersion, adaptationScore: adaptation, threatsNeutralized: neutralized,
+    });
+  },
+
   reset: () => set({
     agents: initialAgents(),
     timeline: [],
@@ -265,6 +370,7 @@ export const useAntigravity = create<CoreState>((set, get) => ({
     modelVersion: { major: 4, minor: 21 },
     learningRate: 0.42,
     adaptationScore: 0.68,
+    brainMode: "NEUTRALIZE",
   }),
 
   tick: () => {
