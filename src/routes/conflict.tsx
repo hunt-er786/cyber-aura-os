@@ -203,7 +203,9 @@ function Conflict() {
       cursorRef.current += 1;
       idRef.current += 1;
       const ts = new Date().toISOString().slice(11, 19);
-      setLines((l) => [...l, { id: idRef.current, who: item.who as Line["who"], msg: item.msg, ts }].slice(-80));
+      const who = item.who as Line["who"];
+      setLines((l) => [...l, { id: idRef.current, who, msg: item.msg, ts }].slice(-80));
+      inject({ who, msg: item.msg });
 
       // Smooth oscillating, never zeroed-out metrics
       let nextSurface = surface;
