@@ -380,7 +380,14 @@ export const useAntigravity = create<CoreState>((set, get) => ({
     const focus = rand(ids);
 
     const a = s.agents[focus];
-    const nextStatus = rand(STATUSES);
+
+    // Brain-mode bias: weight which status fires this tick.
+    const mode = s.brainMode;
+    const r = Math.random();
+    const nextStatus: AgentStatus =
+      mode === "ESCALATE"  ? (r < 0.65 ? "ENGAGING" : r < 0.85 ? "REASONING" : "SCANNING") :
+      mode === "LEARNING"  ? (r < 0.55 ? "SCANNING" : r < 0.85 ? "SYNCING"   : "REASONING") :
+                             (r < 0.35 ? "ENGAGING" : r < 0.65 ? "REASONING" : r < 0.85 ? "SYNCING" : "SCANNING");
     const reasoning = rand(REASONING_TEMPLATES[focus]);
     const newSignal = rand(SIGNAL_TEMPLATES[focus]);
     const isEngaging = nextStatus === "ENGAGING";
