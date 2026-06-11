@@ -94,12 +94,19 @@ function Conflict() {
     setTimeout(seed, 0);
   };
 
+  // Bridge: every line emitted by the conflict engine is fed to the
+  // Antigravity Neural Core, which produces real agent reactions,
+  // strategy updates, and defense actions in the dashboard.
+  const inject = useAntigravity((s) => s.injectConflictSignal);
+  useEffect(() => { ensureAntigravityRunning(); }, []);
+
   // helper to push a SYSTEM-style line
   const pushLine = (who: Line["who"], msg: string) => {
     idRef.current += 1;
     const ts = new Date().toISOString().slice(11, 19);
     const line: Line = { id: idRef.current, who, msg, ts };
     setLines((l) => [...l, line].slice(-200));
+    inject({ who, msg });
   };
 
   // seed once on mount
